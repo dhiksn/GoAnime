@@ -1,0 +1,578 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tonton Episode  GoAnime</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- Font: Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Icons: Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- ArtPlayer -->
+  <script src="https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js"></script>
+  <!-- HLS.js for m3u8 -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
+  <style>
+    :root {
+      --font-main: 'Outfit', sans-serif;
+    }
+    body {
+      font-family: var(--font-main);
+      background: #0a0a0f;
+    }
+
+    /*  PLAYER & LAYOUT  */
+    .watch-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2rem;
+      padding: 2rem 0;
+    }
+    .player-container {
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 16/9;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      border: 1px solid var(--border);
+      position: relative;
+      background: #000;
+    }
+    #artplayer-app {
+      width: 100%;
+      height: 100%;
+    }
+    .player-placeholder {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: .75rem; color: var(--text-muted);
+      font-size: .9rem;
+    }
+
+    /*  EP TITLE  */
+    .ep-header {
+      margin-bottom: 1.5rem;
+    }
+    .ep-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .ep-title span {
+      font-size: 0.9rem;
+      color: var(--accent);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /*  SERVERS  */
+    .server-group {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-top: 1.5rem;
+      border: 1px solid var(--border);
+    }
+    .quality-tabs {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .quality-tab {
+      padding: .35rem .9rem;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .quality-tab:hover { border-color: var(--accent); color: var(--text-primary); }
+    .quality-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .quality-servers { display: none; }
+    .quality-servers.active { display: flex; flex-wrap: wrap; gap: .6rem; }
+
+    .server-quality-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-transform: uppercase;
+    }
+    .server-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+    .server-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1.2rem;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .server-btn:hover, .server-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+    }
+
+    /*  NAV BUTTONS  */
+    .ep-nav-wrap {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .nav-btn {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(230, 57, 70, 0.05);
+    }
+
+    /*  DOWNLOAD  */
+    .download-section {
+      margin-top: 3rem;
+    }
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .download-card {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+    }
+    .download-card-title {
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .download-quality-item {
+      margin-top: 1rem;
+    }
+    .quality-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .download-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .dl-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      color: var(--text-primary);
+    }
+    .dl-btn:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+    .dl-btn.dead {
+      text-decoration: line-through;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    /*  SIDEBAR  */
+    .sidebar-card {
+      background: var(--bg-secondary);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: sticky;
+      top: 80px;
+    }
+    .sidebar-header {
+      padding: 1.25rem;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-body {
+      padding: 1.25rem;
+    }
+    .info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .info-row-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .info-row-lbl {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .info-row-val {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 1000px) {
+      .watch-layout { grid-template-columns: 1fr; }
+      .sidebar-card { position: static; }
+    }
+    @media (max-width: 600px) {
+      .ep-title { font-size: 1.2rem; flex-direction: column; gap: 4px; }
+      .nav-btn span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container" style="display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 0;">
+    <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/ongoing">Ongoing</a></li>
+      <li><a href="/movies">Movies</a></li>
+      <li><a href="/schedule">Jadwal</a></li>
+      <li><a href="/batch">Batch</a></li><li><a href="/daftar-anime">Daftar Anime</a></li>
+    </ul>
+    <div class="navbar-search">
+      <input type="text" id="navSearch" placeholder="Cari anime..." />
+      <button onclick="doNavSearch()"><i data-lucide="search" style="width:16px;height:16px;"></i></button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="watch-layout">
+    <!-- LEFT: PLAYER & CONTROLS -->
+    <div class="watch-main">
+      <div class="ep-header">
+        <h1 class="ep-title" id="epTitle"><span>Sabar Ya...</span> Memuat Episode...</h1>
+      </div>
+
+      <div class="player-container" id="playerWrap">
+        <div class="player-placeholder">
+          <div class="spinner"></div>
+          <span>Pilih server untuk mulai menonton</span>
+        </div>
+      </div>
+
+      <!-- SERVER SELECTION -->
+      <div id="serverSection"></div>
+
+      <!-- EP NAVIGATION -->
+      <div class="ep-nav-wrap" id="epNav"></div>
+
+      <!-- DOWNLOADS -->
+      <div class="download-section" id="downloadSection" style="display: none;">
+        <div class="section-title"><i data-lucide="download-cloud"></i> Link Download</div>
+        <div class="download-grid" id="downloadLinks"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: SIDEBAR INFO -->
+    <aside class="watch-sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-header"><i data-lucide="play-circle"></i> Info Tayangan</div>
+        <div class="sidebar-body" id="epInfoSidebar">
+          <div class="loading-overlay" style="padding: 1rem;"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>GoAnime Wrapper & UI &copy; 2024</p>
+  </div>
+</footer>
+
+<script src="/js/helpers.js"></script>
+<script>
+  initNavSearch();
+  const params = new URLSearchParams(location.search);
+  const slug   = params.get('slug') || '';
+
+  function switchQuality(id, tab) {
+    // Sembunyikan semua server list
+    document.querySelectorAll('.quality-servers').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.quality-tab').forEach(el => el.classList.remove('active'));
+    // Tampilkan yang dipilih
+    document.getElementById(id)?.classList.add('active');
+    tab.classList.add('active');
+  }
+
+  async function loadEpisode() {
+    if (!slug) {
+      document.getElementById('epTitle').innerHTML = ' Slug tidak ditemukan';
+      return;
+    }
+    try {
+      const res  = await fetch(`${API}/api/episode/${slug}`);
+      const json = await res.json();
+      const d    = json.data || {};
+
+      document.title = `${d.title || 'Episode'}  GoAnime`;
+      document.getElementById('epTitle').innerHTML = `<span>Episode</span> ${d.title || slug}`;
+
+      /*  Server Selection  */
+      const qualities = d.server?.qualities || [];
+      const serverSec = document.getElementById('serverSection');
+      const validQualities = qualities.filter(q => q.serverList?.length > 0);
+
+      if (validQualities.length) {
+        // Tabs kualitas + server list per kualitas
+        const tabsHTML = validQualities.map((q, i) => `
+          <div class="quality-tab ${i === 0 ? 'active' : ''}"
+               onclick="switchQuality('q${i}', this)">
+            ${q.title.toUpperCase()}
+          </div>`).join('');
+
+        const serversHTML = validQualities.map((q, i) => `
+          <div class="quality-servers ${i === 0 ? 'active' : ''}" id="q${i}">
+            ${q.serverList.map(s => `
+              <button class="server-btn" onclick="loadServerById('${s.serverId}', this)">
+                <i data-lucide="play" style="width:14px;height:14px;"></i>
+                ${s.title}
+              </button>`).join('')}
+          </div>`).join('');
+
+        serverSec.innerHTML = `
+          <div class="server-group">
+            <div class="server-quality-title"><i data-lucide="monitor"></i> Pilih Kualitas & Server</div>
+            <div class="quality-tabs">${tabsHTML}</div>
+            ${serversHTML}
+          </div>`;
+
+        // Auto-load server pertama
+        const firstServer = validQualities[0]?.serverList?.[0];
+        if (firstServer) {
+          const firstBtn = serverSec.querySelector('.server-btn');
+          loadServerById(firstServer.serverId, firstBtn);
+        }
+      } else if (d.defaultStreamingUrl) {
+         document.getElementById('playerWrap').innerHTML = `<iframe src="${d.defaultStreamingUrl}" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
+         serverSec.innerHTML = '<div class="server-group"><p style="font-size:0.85rem;color:var(--text-muted)">Menggunakan server default</p></div>';
+      }
+
+      /*  Navigation  */
+      const navEl = document.getElementById('epNav');
+      let navHTML = '';
+      if (d.prevEpisode?.episodeId) {
+        navHTML += `<div class="nav-btn" onclick="goEpisode('${d.prevEpisode.episodeId}')"><i data-lucide="arrow-left"></i> <span>Eps Sebelumnya</span></div>`;
+      }
+      if (d.animeId) {
+        navHTML += `<div class="nav-btn" onclick="goAnime('${d.animeId}')"><i data-lucide="list"></i> <span>Semua Eps</span></div>`;
+      }
+      if (d.nextEpisode?.episodeId) {
+        navHTML += `<div class="nav-btn" onclick="goEpisode('${d.nextEpisode.episodeId}')"><span>Eps Berikutnya</span> <i data-lucide="arrow-right"></i></div>`;
+      }
+      navEl.innerHTML = navHTML;
+
+      /*  Downloads  */
+      const formats = d.downloadUrl?.formats || [];
+      if (formats.length) {
+        document.getElementById('downloadSection').style.display = 'block';
+        document.getElementById('downloadLinks').innerHTML = formats.map(fmt => {
+          // Ambil hanya tipe format (MKV/MP4/x265)  buang nama anime di belakangnya
+          const fmtLabel = fmt.title.split(' ')[0] || fmt.title;
+          return `
+          <div class="download-card">
+            <div class="download-card-title"><i data-lucide="file-video"></i> ${fmtLabel}</div>
+            ${(fmt.qualities || []).map(q => `
+              <div class="download-quality-item">
+                <span class="quality-label">${q.title.trim()}</span>
+                <div class="download-btn-group">
+                  ${(q.urls || []).map(u => {
+                    const isDead = !u.url || u.url === '#' || u.url.trim() === '' || (u.title && u.title.includes('<s>'));
+                    const cleanTitle = (u.title || 'Download').replace(/<\/?s>/g, '');
+                    return `<a href="${u.url || '#'}" target="_blank" class="dl-btn ${isDead ? 'dead' : ''}">${cleanTitle}</a>`;
+                  }).join('')}
+                </div>
+              </div>`).join('')}
+          </div>`;
+        }).join('');
+      }
+
+      /*  Sidebar  */
+      document.getElementById('epInfoSidebar').innerHTML = `
+        <div class="info-list">
+          <div class="info-row-item">
+            <span class="info-row-lbl">Judul Lengkap</span>
+            <span class="info-row-val">${d.title || '-'}</span>
+          </div>
+          <div class="info-row-item">
+            <span class="info-row-lbl">Tanggal Rilis</span>
+            <span class="info-row-val">${d.releasedOn || '-'}</span>
+          </div>
+          <div class="info-row-item">
+            <span class="info-row-lbl">Nama Anime</span>
+            <span class="info-row-val">
+              ${d.animeId ? `<a href="/anime?slug=${d.animeId}" style="color:var(--accent);text-decoration:underline;">${d.animeId}</a>` : '-'}
+            </span>
+          </div>
+          <div class="info-row-item">
+            <span class="info-row-lbl">Genre</span>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;">
+               ${(d.genreList || []).map(g => `<a href="/genres/${g.genreId}" class="genre-pill" style="padding: 2px 10px; font-size: 0.7rem;">${g.title}</a>`).join('')}
+            </div>
+          </div>
+        </div>`;
+
+      lucide.createIcons();
+
+    } catch (err) {
+      document.getElementById('epTitle').innerHTML = ' Gagal memuat episode';
+      console.error(err);
+    }
+  }
+
+  let artInstance = null;
+
+  // URL yang bisa langsung diplay di ArtPlayer
+  function isDirectPlayable(url) {
+    return url.match(/\.(mp4|webm|ogg|m3u8)(\?|$)/i) !== null;
+  }
+
+  function playDirect(url, title) {
+    const wrap = document.getElementById('playerWrap');
+    wrap.innerHTML = '<div id="artplayer-app"></div>';
+
+    const isHLS = url.includes('.m3u8');
+
+    if (artInstance) { try { artInstance.destroy(); } catch(e) {} }
+
+    artInstance = new Artplayer({
+      container: '#artplayer-app',
+      url,
+      title: title || '',
+      volume: 0.8,
+      autoplay: true,
+      pip: true,
+      screenshot: true,
+      setting: true,
+      playbackRate: true,
+      aspectRatio: true,
+      fullscreen: true,
+      fullscreenWeb: true,
+      miniProgressBar: true,
+      theme: '#e63946',
+      customType: isHLS ? {
+        m3u8: function(video, url) {
+          if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url;
+          }
+        }
+      } : {},
+    });
+  }
+
+  function playIframe(url) {
+    const wrap = document.getElementById('playerWrap');
+    wrap.innerHTML = `<iframe src="${url}" allowfullscreen allow="autoplay; fullscreen" style="width:100%;height:100%;border:none;"></iframe>`;
+  }
+
+  async function loadServerById(serverId, btn) {
+    if (!serverId) return;
+    document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    const wrap = document.getElementById('playerWrap');
+    wrap.innerHTML = '<div class="player-placeholder"><div class="spinner"></div><span>Mengambil link stream...</span></div>';
+
+    try {
+      const res  = await fetch(`${API}/api/server/${serverId}`);
+      const json = await res.json();
+      const url  = json.data?.url || json.data?.streamUrl || json.data?.src || '';
+
+      if (!url) {
+        wrap.innerHTML = '<div class="player-placeholder"><span style="color:var(--accent)"> URL tidak tersedia</span></div>';
+        return;
+      }
+
+      const epTitle = document.getElementById('epTitle')?.textContent?.trim() || '';
+
+      if (isDirectPlayable(url)) {
+        // MP4 / HLS  ArtPlayer custom
+        playDirect(url, epTitle);
+      } else {
+        // Mega, Filedon, Blogger, dll  iframe biasa
+        playIframe(url);
+      }
+    } catch (err) {
+      wrap.innerHTML = `<div class="player-placeholder"><span style="color:var(--accent)"> ${err.message}</span></div>`;
+    }
+  }
+
+  loadEpisode();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

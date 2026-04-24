@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Genre  GoAnime</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+  <ul class="navbar-nav">
+    <li><a href="/">Home</a></li>
+    <li><a href="/ongoing">Ongoing</a></li>
+    <li><a href="/movies">Movies</a></li>
+    <li><a href="/schedule">Jadwal</a></li>
+    <li><a href="/batch">Batch</a></li><li><a href="/daftar-anime">Daftar Anime</a></li>
+  </ul>
+  <div class="navbar-search">
+    <input type="text" id="navSearch" placeholder="Cari anime..." />
+    <button onclick="doNavSearch()">Cari</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Genre: <span id="genreTitle">...</span></h1>
+  <p>Daftar anime berdasarkan genre ini</p>
+</div>
+
+<div class="container">
+  <!-- Breadcrumb -->
+  <nav style="font-size:.82rem;color:var(--text-muted);padding:1rem 0 0;display:flex;gap:.4rem;align-items:center">
+    <a href="/" style="color:var(--text-muted);transition:.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">Home</a>
+    <span>/</span>
+    <a href="/genres" style="color:var(--text-muted);transition:.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">Genre</a>
+    <span>/</span>
+    <span id="breadcrumbGenre" style="color:var(--text-primary)">...</span>
+  </nav>
+  <section class="section">
+    <div id="grid" class="anime-grid"></div>
+    <div id="pagination" class="pagination"></div>
+  </section>
+</div>
+
+<footer><p>GoAnime Wrapper &copy; 2024</p></footer>
+
+<script src="/js/helpers.js"></script>
+<script>
+  initNavSearch();
+  const params    = new URLSearchParams(location.search);
+  // Support both /genres/:slug (path) and /genre?slug= (legacy)
+  const pathSlug  = location.pathname.split('/genres/')[1]?.split('/')[0] || '';
+  const genreSlug = pathSlug || params.get('slug') || '';
+
+  const genreLabel = genreSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  document.getElementById('genreTitle').textContent = genreLabel;
+  document.getElementById('breadcrumbGenre').textContent = genreLabel;
+  document.title = `Genre: ${genreLabel}  GoAnime`;
+
+  async function loadPage(page) {
+    if (!genreSlug) {
+      document.getElementById('grid').innerHTML = emptyHTML('', 'Genre tidak ditemukan');
+      return;
+    }
+    const grid = document.getElementById('grid');
+    grid.innerHTML = loadingHTML();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try {
+      const res  = await fetch(`${API}/api/genre/${genreSlug}?page=${page}`);
+      const json = await res.json();
+      const list = json.data?.animeList || [];
+      grid.innerHTML = list.length ? list.map(animeCard).join('') : emptyHTML();
+      renderPagination('pagination', page, list.length >= 10, 'loadPage');
+    } catch (err) {
+      grid.innerHTML = errorHTML(err.message);
+    }
+  }
+
+  loadPage(parseInt(params.get('page')) || 1);
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

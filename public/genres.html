@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Genre Anime  GoAnime</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .genre-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: .75rem;
+    }
+    .genre-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem .75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .4rem;
+    }
+    .genre-card:hover {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+    .genre-card-name {
+      font-size: .88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .genre-card-count {
+      font-size: .72rem;
+      color: var(--text-muted);
+    }
+    .genre-icon { font-size: 1.5rem; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+  <ul class="navbar-nav">
+    <li><a href="/">Home</a></li>
+    <li><a href="/ongoing">Ongoing</a></li>
+    <li><a href="/movies">Movies</a></li>
+    <li><a href="/schedule">Jadwal</a></li>
+    <li><a href="/batch">Batch</a></li>
+    <li><a href="/daftar-anime">Daftar Anime</a></li>
+  </ul>
+  <div class="navbar-search">
+    <input type="text" id="navSearch" placeholder="Cari anime..." />
+    <button onclick="doNavSearch()">Cari</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Genre <span>Anime</span></h1>
+  <p>Jelajahi anime berdasarkan genre favorit</p>
+</div>
+
+<div class="container">
+  <!-- Breadcrumb -->
+  <nav style="font-size:.82rem;color:var(--text-muted);padding:1rem 0 0;display:flex;gap:.4rem;align-items:center">
+    <a href="/" style="color:var(--text-muted);transition:.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">Home</a>
+    <span>/</span>
+    <span style="color:var(--text-primary)">Genre</span>
+  </nav>
+  <section class="section">
+    <div id="genreGrid" class="genre-section">
+      <div class="loading-overlay"><div class="spinner"></div><span>Memuat genre...</span></div>
+    </div>
+  </section>
+</div>
+
+<footer><p>GoAnime Wrapper &copy; 2024</p></footer>
+
+<script src="/js/helpers.js"></script>
+<script>
+  initNavSearch();
+
+  // Emoji per genre
+  const GENRE_ICONS = {
+    action:'', adventure:'', comedy:'', drama:'',
+    fantasy:'', horror:'', mystery:'', romance:'',
+    'sci-fi':'', 'slice-of-life':'', sports:'', supernatural:'',
+    thriller:'', music:'', historical:'', school:'',
+    isekai:'', harem:'', ecchi:'', mecha:'',
+    psychological:'', military:'', magic:'', demons:'',
+    vampire:'', 'super-power':'', seinen:'', shounen:'',
+    shoujo:'', josei:'', kids:'', parody:'',
+    'martial-arts':'', game:'', reincarnation:'',
+  };
+
+  async function loadGenres() {
+    const grid = document.getElementById('genreGrid');
+    try {
+      const res  = await fetch(`${API}/api/genres`);
+      const json = await res.json();
+
+      let list = [];
+      const raw = json.data;
+      if (raw?.genreList) {
+        list = raw.genreList;
+      } else if (Array.isArray(raw)) {
+        raw.forEach(item => {
+          if (item.genreList) list.push(...item.genreList);
+          else if (item.genreId) list.push(item);
+        });
+      }
+
+      // Deduplicate
+      const seen = new Set();
+      list = list.filter(g => {
+        if (seen.has(g.genreId)) return false;
+        seen.add(g.genreId); return true;
+      });
+
+      if (!list.length) {
+        grid.innerHTML = emptyHTML('', 'Tidak ada genre');
+        return;
+      }
+
+      grid.innerHTML = list.map(g => {
+        const icon = GENRE_ICONS[g.genreId] || '';
+        return `
+          <div class="genre-card" onclick="goGenre('${g.genreId}')">
+            <div class="genre-icon">${icon}</div>
+            <div class="genre-card-name">${g.title}</div>
+          </div>`;
+      }).join('');
+
+    } catch (err) {
+      grid.innerHTML = errorHTML(err.message);
+    }
+  }
+
+  loadGenres();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+

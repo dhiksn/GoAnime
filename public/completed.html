@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime Completed  GoAnime</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+  <ul class="navbar-nav">
+    <li><a href="/">Home</a></li>
+    <li><a href="/ongoing">Ongoing</a></li>
+    <li><a href="/movies">Movies</a></li>
+    <li><a href="/schedule">Jadwal</a></li>
+    <li><a href="/batch">Batch</a></li><li><a href="/daftar-anime">Daftar Anime</a></li>
+  </ul>
+  <div class="navbar-search">
+    <input type="text" id="navSearch" placeholder="Cari anime..." />
+    <button onclick="doNavSearch()">Cari</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Anime <span>Completed</span></h1>
+  <p>Anime yang sudah selesai tayang</p>
+</div>
+
+<div class="container">
+  <section class="section">
+    <div class="filter-bar">
+      <label>Urutkan:</label>
+      <select id="orderSelect" onchange="loadPage(1)">
+        <option value="latest">Terbaru</option>
+        <option value="oldest">Terlama</option>
+        <option value="title">Judul A-Z</option>
+        <option value="rating">Rating</option>
+      </select>
+    </div>
+    <div id="grid" class="anime-grid"></div>
+    <div id="pagination" class="pagination"></div>
+  </section>
+</div>
+
+<footer><p>GoAnime Wrapper &copy; 2024</p></footer>
+
+<script src="/js/helpers.js"></script>
+<script>
+  initNavSearch();
+
+  async function loadPage(page) {
+    const order = document.getElementById('orderSelect').value;
+    const grid  = document.getElementById('grid');
+    grid.innerHTML = loadingHTML();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try {
+      const res  = await fetch(`${API}/api/completed?page=${page}&order=${order}`);
+      const json = await res.json();
+      const list = json.data?.animeList || [];
+      grid.innerHTML = list.length ? list.map(animeCard).join('') : emptyHTML();
+      renderPagination('pagination', page, list.length >= 10, 'loadPage');
+    } catch (err) {
+      grid.innerHTML = errorHTML(err.message);
+    }
+  }
+
+  const p = new URLSearchParams(location.search);
+  loadPage(parseInt(p.get('page')) || 1);
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

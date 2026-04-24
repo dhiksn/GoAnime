@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404  Halaman Tidak Ditemukan</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .error-page {
+      min-height: calc(100vh - 60px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    .error-content {
+      max-width: 500px;
+    }
+    .error-code {
+      font-size: 8rem;
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+    .error-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: .75rem;
+    }
+    .error-desc {
+      font-size: .95rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+    .error-actions {
+      display: flex;
+      gap: .75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      padding: .65rem 1.5rem;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: .9rem;
+      text-decoration: none;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); }
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: .65rem 1.5rem;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: .9rem;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+  <ul class="navbar-nav">
+    <li><a href="/">Home</a></li>
+    <li><a href="/ongoing">Ongoing</a></li>
+    <li><a href="/movies">Movies</a></li>
+    <li><a href="/schedule">Jadwal</a></li>
+    <li><a href="/batch">Batch</a></li>
+    <li><a href="/daftar-anime">Daftar Anime</a></li>
+  </ul>
+  <div class="navbar-search">
+    <input type="text" id="navSearch" placeholder="Cari anime..." />
+    <button onclick="doNavSearch()">Cari</button>
+  </div>
+</nav>
+
+<div class="error-page">
+  <div class="error-content">
+    <div class="error-code">404</div>
+    <h1 class="error-title">Halaman Tidak Ditemukan</h1>
+    <p class="error-desc">
+      Maaf, halaman yang kamu cari tidak ada atau sudah dipindahkan.
+      Coba cek URL atau kembali ke halaman utama.
+    </p>
+    <div class="error-actions">
+      <a href="/" class="btn-primary"> Kembali ke Home</a>
+      <a href="/daftar-anime" class="btn-secondary">Lihat Daftar Anime</a>
+    </div>
+  </div>
+</div>
+
+<script src="/js/helpers.js"></script>
+<script>initNavSearch();</script>
+</body>
+</html>
+
+
+
+
+
+
+

@@ -1,0 +1,427 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daftar Anime - GoAnime</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* ── FILTER PANEL ── */
+    .filter-panel {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .filter-group { margin-bottom: 1.25rem; }
+    .filter-group:last-child { margin-bottom: 0; }
+    .filter-group-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: .75rem;
+    }
+    .filter-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem .75rem;
+      align-items: center;
+    }
+
+    /* Radio style */
+    .filter-radio {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      cursor: pointer;
+      font-size: .85rem;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+    .filter-radio:hover { color: var(--text-primary); }
+    .filter-radio input[type="radio"] { display: none; }
+    .radio-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .filter-radio input:checked ~ .radio-dot {
+      background: #29b6f6;
+      border-color: #29b6f6;
+    }
+    .filter-radio input:checked ~ span { color: var(--text-primary); }
+
+    /* Sort tabs */
+    .sort-tab {
+      padding: .4rem 1rem;
+      border-radius: 6px;
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+    .sort-tab:hover { color: var(--text-primary); border-color: var(--accent); }
+    .sort-tab.active { background: #29b6f6; border-color: #29b6f6; color: #fff; }
+
+    /* Genre checkboxes */
+    .genre-option {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      cursor: pointer;
+      font-size: .82rem;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+    .genre-option:hover { color: var(--text-primary); }
+    .genre-option input[type="checkbox"] { display: none; }
+    .genre-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .genre-option input:checked ~ .genre-dot {
+      background: #29b6f6;
+      border-color: #29b6f6;
+    }
+    .genre-option input:checked ~ span { color: var(--text-primary); }
+
+    /* Search button */
+    .filter-search-btn {
+      width: 100%;
+      padding: .85rem;
+      background: #29b6f6;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 1.25rem;
+      transition: var(--transition);
+    }
+    .filter-search-btn:hover { background: #0288d1; }
+
+    /* ── ALPHABET BAR ── */
+    .alpha-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .35rem;
+      margin-bottom: 1.5rem;
+      position: sticky;
+      top: 60px;
+      z-index: 10;
+      background: var(--bg-primary);
+      padding: .75rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .alpha-btn {
+      min-width: 34px;
+      padding: .28rem .45rem;
+      text-align: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .alpha-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+    .alpha-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ── LIST ── */
+    .anime-group { margin-bottom: 2.5rem; }
+    .group-header {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      padding-bottom: .5rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+      min-width: 40px;
+    }
+    .anime-list-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: .4rem;
+    }
+    .anime-list-item {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .5rem .75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: .85rem;
+      color: var(--text-muted);
+    }
+    .anime-list-item:hover { background: var(--bg-card); color: var(--text-primary); }
+    .anime-list-item::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+    .anime-list-item:hover::before { background: var(--accent); }
+
+    .result-count {
+      font-size: .82rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"><span>GoAnime</span></a>
+  <ul class="navbar-nav">
+    <li><a href="/">Home</a></li>
+    <li><a href="/ongoing">Ongoing</a></li>
+    <li><a href="/movies">Movies</a></li>
+    <li><a href="/schedule">Jadwal</a></li>
+    <li><a href="/batch">Batch</a></li>
+    <li><a href="/daftar-anime" class="active">Daftar Anime</a></li>
+  </ul>
+  <div class="navbar-search">
+    <input type="text" id="navSearch" placeholder="Cari anime..." />
+    <button onclick="doNavSearch()">Cari</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Daftar <span>Semua Anime</span></h1>
+  <p>Seluruh koleksi anime yang tersedia di GoAnime</p>
+</div>
+
+<div class="container">
+  <section class="section">
+
+    <!-- FILTER PANEL -->
+    <div class="filter-panel">
+
+      <!-- Status -->
+      <div class="filter-group">
+        <div class="filter-group-title">Status</div>
+        <div class="filter-options">
+          <label class="filter-radio">
+            <input type="radio" name="status" value="" checked>
+            <div class="radio-dot"></div><span>All</span>
+          </label>
+          <label class="filter-radio">
+            <input type="radio" name="status" value="Ongoing">
+            <div class="radio-dot"></div><span>Currently Airing</span>
+          </label>
+          <label class="filter-radio">
+            <input type="radio" name="status" value="Completed">
+            <div class="radio-dot"></div><span>Finished Airing</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Type -->
+      <div class="filter-group">
+        <div class="filter-group-title">Type</div>
+        <div class="filter-options">
+          <label class="filter-radio">
+            <input type="radio" name="type" value="" checked>
+            <div class="radio-dot"></div><span>All</span>
+          </label>
+          <label class="filter-radio">
+            <input type="radio" name="type" value="TV">
+            <div class="radio-dot"></div><span>TV</span>
+          </label>
+          <label class="filter-radio">
+            <input type="radio" name="type" value="OVA">
+            <div class="radio-dot"></div><span>OVA</span>
+          </label>
+          <label class="filter-radio">
+            <input type="radio" name="type" value="ONA">
+            <div class="radio-dot"></div><span>ONA</span>
+          </label>
+          <label class="filter-radio">
+            <input type="radio" name="type" value="Special">
+            <div class="radio-dot"></div><span>Special</span>
+          </label>
+          <label class="filter-radio">
+            <input type="radio" name="type" value="Movie">
+            <div class="radio-dot"></div><span>Movie</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Urutan -->
+      <div class="filter-group">
+        <div class="filter-group-title">Urutkan Berdasarkan</div>
+        <div class="filter-options" id="sortTabs">
+          <div class="sort-tab active" data-sort="az" onclick="setSort('az', this)">A-Z</div>
+          <div class="sort-tab" data-sort="za" onclick="setSort('za', this)">Z-A</div>
+        </div>
+      </div>
+
+      <!-- Genre -->
+      <div class="filter-group">
+        <div class="filter-group-title">Genre</div>
+        <div class="filter-options" id="genreOptions">
+          <div class="loading-overlay" style="padding:.5rem"><div class="spinner" style="width:16px;height:16px"></div></div>
+        </div>
+      </div>
+
+      <button class="filter-search-btn" onclick="applyFilter()">Search</button>
+    </div>
+
+    <!-- ALPHABET BAR -->
+    <div class="alpha-bar" id="alphaBar" style="display:none"></div>
+
+    <!-- RESULT COUNT -->
+    <div class="result-count" id="resultCount"></div>
+
+    <!-- CONTENT -->
+    <div id="listContent">
+      <div class="loading-overlay"><div class="spinner"></div><span>Memuat daftar anime...</span></div>
+    </div>
+
+  </section>
+</div>
+
+<footer><p>GoAnime Wrapper &copy; 2024</p></footer>
+
+<script src="/js/helpers.js"></script>
+<script>
+  initNavSearch();
+
+  let allGroups  = [];   // raw dari API: [{ startWith, animeList[] }]
+  let allFlat    = [];   // flat list semua anime
+  let currentSort = 'az';
+  let genreList  = [];
+
+  /* ── Load genres ── */
+  async function loadGenres() {
+    try {
+      const res  = await fetch(`${API}/api/genres`);
+      const json = await res.json();
+      genreList  = json.data?.genreList || [];
+      const el   = document.getElementById('genreOptions');
+      el.innerHTML = genreList.map(g => `
+        <label class="genre-option">
+          <input type="checkbox" name="genre" value="${g.genreId}">
+          <div class="genre-dot"></div>
+          <span>${g.title}</span>
+        </label>`).join('');
+    } catch (e) {
+      document.getElementById('genreOptions').innerHTML =
+        '<span style="font-size:.8rem;color:var(--text-muted)">Gagal memuat genre</span>';
+    }
+  }
+
+  /* ── Load list ── */
+  async function loadList() {
+    try {
+      const res  = await fetch(`${API}/api/list`);
+      const json = await res.json();
+      allGroups  = json.data?.list || [];
+      allFlat    = allGroups.flatMap(g => g.animeList || []);
+      applyFilter();
+    } catch (err) {
+      document.getElementById('listContent').innerHTML = errorHTML(err.message);
+    }
+  }
+
+  /* ── Sort ── */
+  function setSort(val, el) {
+    currentSort = val;
+    document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  /* ── Apply filter ── */
+  function applyFilter() {
+    const status = document.querySelector('input[name="status"]:checked')?.value || '';
+    const type   = document.querySelector('input[name="type"]:checked')?.value || '';
+    const genres = [...document.querySelectorAll('input[name="genre"]:checked')].map(i => i.value);
+
+    // Filter dari flat list
+    // Note: list API tidak punya status/type/genre per item,
+    // jadi filter ini bekerja sebagai navigasi ke halaman yang sesuai
+    // Kalau ada filter aktif → redirect ke halaman yang tepat
+    if (status === 'Ongoing' && !type && !genres.length) {
+      window.location.href = '/ongoing'; return;
+    }
+    if (status === 'Completed' && !type && !genres.length) {
+      window.location.href = '/completed'; return;
+    }
+    if (type === 'Movie' && !status && !genres.length) {
+      window.location.href = '/movies'; return;
+    }
+    if (genres.length === 1 && !status && !type) {
+      window.location.href = `/genres/${genres[0]}`; return;
+    }
+
+    // Sort
+    let sorted = [...allFlat];
+    if (currentSort === 'az') sorted.sort((a, b) => a.title.localeCompare(b.title));
+    if (currentSort === 'za') sorted.sort((a, b) => b.title.localeCompare(a.title));
+
+    // Re-group by first letter
+    const grouped = {};
+    sorted.forEach(a => {
+      const key = a.title[0]?.toUpperCase() || '#';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(a);
+    });
+
+    const keys = Object.keys(grouped).sort();
+
+    // Alphabet bar
+    const alphaBar = document.getElementById('alphaBar');
+    alphaBar.style.display = 'flex';
+    alphaBar.innerHTML = `
+      <a class="alpha-btn active" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">ALL</a>
+      ${keys.map(k => `
+        <a class="alpha-btn" href="#group-${k}"
+           onclick="document.getElementById('group-${k}')?.scrollIntoView({behavior:'smooth',block:'start'});return false">
+          ${k}
+        </a>`).join('')}`;
+
+    // Result count
+    document.getElementById('resultCount').textContent =
+      `Menampilkan ${sorted.length} anime`;
+
+    // Render
+    document.getElementById('listContent').innerHTML = keys.map(k => `
+      <div class="anime-group" id="group-${k}">
+        <div class="group-header">${k}</div>
+        <div class="anime-list-grid">
+          ${grouped[k].map(a => `
+            <div class="anime-list-item" onclick="goAnime('${a.animeId}')">
+              ${a.title}
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  loadGenres();
+  loadList();
+</script>
+</body>
+</html>
+
+
+

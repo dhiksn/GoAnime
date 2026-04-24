@@ -1,0 +1,434 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Batch Detail  GoAnime</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- Font: Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Icons: Lucid -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --font-main: 'Outfit', sans-serif;
+    }
+    body {
+      font-family: var(--font-main);
+    }
+
+    /*  HERO  */
+    .batch-hero {
+      position: relative;
+      overflow: hidden;
+      padding: 4rem 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary);
+    }
+    .hero-backdrop {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(60px) brightness(0.25);
+      z-index: 0;
+      transform: scale(1.1);
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 3rem;
+      align-items: flex-start;
+    }
+
+    /* Poster */
+    .poster-col {
+      flex-shrink: 0;
+      width: 240px;
+    }
+    .poster-wrapper {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+      aspect-ratio: 2/3;
+    }
+    .poster-wrapper img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    /* Info */
+    .info-col {
+      flex: 1;
+      min-width: 0;
+    }
+    .batch-label {
+      background: var(--accent);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+      color: #fff;
+    }
+    .hero-meta-row {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.95rem;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .meta-item i {
+      color: var(--accent);
+      width: 18px; height: 18px;
+    }
+
+    .synopsis-box {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 1.5rem;
+      border-radius: 16px;
+      margin-top: 1.5rem;
+    }
+    .synopsis-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .synopsis-text {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.8);
+    }
+
+    /*  DOWNLOAD SECTION  */
+    .download-section {
+      padding: 3rem 0;
+    }
+    .dl-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .dl-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .dl-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    .dl-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-5px);
+    }
+    .dl-card-header {
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin-bottom: 1.25rem;
+      color: var(--accent2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dl-quality-group {
+      margin-top: 1.25rem;
+    }
+    .quality-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .dl-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+    .dl-link-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .dl-link-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(230, 57, 70, 0.05);
+    }
+    .dl-link-btn.dead {
+      text-decoration: line-through;
+      opacity: 0.4;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    /*  CONTENT GRID  */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2rem;
+      margin-top: 2.5rem;
+    }
+    .detail-section {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .detail-section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #fff;
+    }
+    .detail-section-title i { color: var(--accent); }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+    .info-item { display: flex; flex-direction: column; gap: 0.25rem; }
+    .info-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .info-value { font-size: 0.9rem; color: var(--text-primary); font-weight: 500; }
+
+    @media (max-width: 1000px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .hero-inner { flex-direction: column; align-items: center; text-align: center; }
+      .hero-meta-row { justify-content: center; flex-wrap: wrap; gap: 1rem; }
+      .poster-col { width: 180px; }
+      .hero-title { font-size: 1.8rem; }
+    }
+    @media (max-width: 640px) {
+      .info-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container" style="display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 0;">
+    <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/ongoing">Ongoing</a></li>
+      <li><a href="/movies">Movies</a></li>
+      <li><a href="/schedule">Jadwal</a></li>
+      <li><a href="/batch" class="active">Batch</a></li>
+    </ul>
+    <div class="navbar-search">
+      <input type="text" id="navSearch" placeholder="Cari anime..." />
+      <button onclick="doNavSearch()"><i data-lucide="search" style="width:16px;height:16px;"></i></button>
+    </div>
+  </div>
+</nav>
+
+<div id="batchHero" class="batch-hero">
+  <div class="container">
+    <div class="loading-overlay"><div class="spinner"></div><span>Menyiapkan detail batch...</span></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="content-grid" id="mainContent" style="display:none">
+    <!-- LEFT: DOWNLOAD LINKS -->
+    <div class="col-left">
+      <section class="download-section" id="dlSection" style="display:none; padding-top: 0;">
+        <h2 class="dl-title"><i data-lucide="package"></i> Link Download Batch</h2>
+        <div id="dlLinks" class="dl-grid"></div>
+      </section>
+    </div>
+
+    <!-- RIGHT: ANIME INFO -->
+    <div class="col-right">
+      <div class="detail-section" style="position: sticky; top: 80px;">
+        <div class="detail-section-title"><i data-lucide="info"></i> Informasi Anime</div>
+        <div id="infoGrid" class="info-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>GoAnime Wrapper & UI &copy; 2024</p>
+  </div>
+</footer>
+
+<script src="/js/helpers.js"></script>
+<script>
+  initNavSearch();
+  const params = new URLSearchParams(location.search);
+  const slug   = params.get('slug') || '';
+
+  async function loadBatch() {
+    if (!slug) {
+      document.getElementById('batchHero').innerHTML =
+        `<div class="container">${emptyHTML('', 'Slug tidak ditemukan')}</div>`;
+      return;
+    }
+    try {
+      const res  = await fetch(`${API}/api/batch/${slug}`);
+      const json = await res.json();
+
+      // Kalau batch tidak ditemukan, redirect ke anime detail
+      if (!json.status || !json.data || !json.data.title) {
+        window.location.href = `/anime?slug=${slug}`;
+        return;
+      }
+
+      const d = json.data || {};
+
+      document.title = `${d.title || 'Batch'}  GoAnime`;
+
+      /* Synopsis handle */
+      const synRaw = d.synopsis || d.description;
+      let synHTML  = '';
+      if (synRaw) {
+        if (typeof synRaw === 'object' && Array.isArray(synRaw.paragraphs)) {
+          synHTML = synRaw.paragraphs.filter(p => p && p.trim()).map(p => `<p>${p}</p>`).join('');
+        } else {
+          synHTML = `<p>${synRaw}</p>`;
+        }
+      }
+
+      document.getElementById('batchHero').innerHTML = `
+        <div class="hero-backdrop" style="background-image: url('${d.poster || ''}')"></div>
+        <div class="container">
+          <div class="hero-inner">
+            <div class="poster-col">
+              <div class="poster-wrapper">
+                <img src="${d.poster || '/img/placeholder.svg'}" alt="${d.title}" onerror="this.src='/img/placeholder.svg'"/>
+              </div>
+            </div>
+            <div class="info-col">
+              <span class="batch-label">Full Season Batch</span>
+              <h1 class="hero-title">${d.title || 'Batch Anime'}</h1>
+              
+              <div class="hero-meta-row">
+                <div class="meta-item"><i data-lucide="layers"></i> ${d.episodes || '-'} Episode</div>
+                <div class="meta-item"><i data-lucide="calendar"></i> ${d.aired || '-'}</div>
+                <div class="meta-item"><i data-lucide="tv"></i> ${d.type || 'TV'}</div>
+                <div class="meta-item"><i data-lucide="hash"></i> ${d.status || 'Finished'}</div>
+              </div>
+
+              <div class="synopsis-box">
+                <div class="synopsis-title"><i data-lucide="align-left"></i> SINOPSIS</div>
+                <div class="synopsis-text">${synHTML || '<p>Tidak ada deskripsi tersedia.</p>'}</div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      document.getElementById('mainContent').style.display = 'grid';
+
+      /*  Detail Grid  */
+      const infoItems = [
+        ['Japanese',      d.japanese],
+        ['English',       d.english],
+        ['Status',        d.status],
+        ['Type',          d.type],
+        ['Source',        d.source],
+        ['Duration',      d.duration],
+        ['Episodes',      d.episodes],
+        ['Season',        d.season],
+        ['Studio',        d.studios],
+        ['Producers',     d.producers],
+        ['Released',      d.aired],
+        ['Credit',        d.credit],
+        ['Score',         d.score],
+      ].filter(([, v]) => v != null && String(v).trim() !== '' && v !== 'null');
+
+      document.getElementById('infoGrid').innerHTML = infoItems.map(([lbl, val]) => `
+        <div class="info-item">
+          <div class="info-label">${lbl}</div>
+          <div class="info-value">${val}</div>
+        </div>
+      `).join('');
+
+      const formats = d.downloadUrl?.formats || d.downloads || [];
+      if (formats.length) {
+        document.getElementById('dlSection').style.display = 'block';
+        document.getElementById('dlLinks').innerHTML = formats.map(fmt => {
+          // Ambil hanya tipe format (MKV / MP4 / x265)  buang nama anime di belakangnya
+          const fmtLabel = fmt.title.split(' ')[0] || fmt.title;
+          return `
+          <div class="dl-card">
+            <div class="dl-card-header"><i data-lucide="file-archive"></i> ${fmtLabel}</div>
+            ${(fmt.qualities || []).map(q => `
+              <div class="dl-quality-group">
+                <span class="quality-label">${q.title.trim()}</span>
+                <div class="dl-links">
+                  ${(q.urls || []).map(u => {
+                    const isDead = !u.url || u.url === '#' || u.url.trim() === '' || (u.title && u.title.includes('<s>'));
+                    const cleanTitle = (u.title || 'Download').replace(/<\/?s>/g, '');
+                    return `<a href="${u.url || '#'}" target="_blank" class="dl-link-btn ${isDead ? 'dead' : ''}">${cleanTitle}</a>`;
+                  }).join('')}
+                </div>
+              </div>`).join('')}
+          </div>`;
+        }).join('');
+      }
+
+      lucide.createIcons();
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('batchHero').innerHTML =
+        `<div class="container">${errorHTML(err.message)}</div>`;
+    }
+  }
+
+  loadBatch();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cari Anime  GoAnime</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+  <ul class="navbar-nav">
+    <li><a href="/">Home</a></li>
+    <li><a href="/ongoing">Ongoing</a></li>
+    <li><a href="/movies">Movies</a></li>
+    <li><a href="/schedule">Jadwal</a></li>
+    <li><a href="/batch">Batch</a></li><li><a href="/daftar-anime">Daftar Anime</a></li>
+  </ul>
+  <div class="navbar-search">
+    <input type="text" id="navSearch" placeholder="Cari anime..." />
+    <button onclick="doNavSearch()">Cari</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Cari <span>Anime</span></h1>
+  <p>Temukan anime favoritmu</p>
+</div>
+
+<div class="container">
+  <section class="section">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Ketik judul anime..." />
+      <button onclick="doSearch(1)"> Cari</button>
+    </div>
+    <div id="searchInfo" style="text-align:center;color:var(--text-muted);font-size:.85rem;margin-bottom:1rem;"></div>
+    <div id="grid" class="anime-grid"></div>
+    <div id="pagination" class="pagination"></div>
+  </section>
+</div>
+
+<footer><p>GoAnime Wrapper &copy; 2024</p></footer>
+
+<script src="/js/helpers.js"></script>
+<script>
+  initNavSearch();
+  let currentQuery = '';
+
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch(1);
+  });
+
+  async function doSearch(page = 1) {
+    const q = document.getElementById('searchInput').value.trim() || currentQuery;
+    if (!q) return;
+    currentQuery = q;
+
+    const grid = document.getElementById('grid');
+    const info = document.getElementById('searchInfo');
+    grid.innerHTML = loadingHTML();
+    info.textContent = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      const res  = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}&page=${page}`);
+      const json = await res.json();
+      /* response: data.animeList  item: { title, poster, type, score, status, animeId } */
+      const list = json.data?.animeList || [];
+      info.textContent = `Hasil untuk "${q}"  halaman ${page}`;
+      grid.innerHTML = list.length
+        ? list.map(animeCard).join('')
+        : emptyHTML('', 'Tidak ditemukan  coba kata kunci lain');
+      renderPagination('pagination', page, list.length >= 10, 'doSearch');
+    } catch (err) {
+      grid.innerHTML = errorHTML(err.message);
+    }
+  }
+
+  const params = new URLSearchParams(location.search);
+  const q = params.get('q');
+  if (q) {
+    document.getElementById('searchInput').value = q;
+    document.getElementById('navSearch').value   = q;
+    doSearch(parseInt(params.get('page')) || 1);
+  }
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

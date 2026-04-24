@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime Populer  GoAnime</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+  <ul class="navbar-nav">
+    <li><a href="/">Home</a></li>
+    <li><a href="/ongoing">Ongoing</a></li>
+    <li><a href="/movies">Movies</a></li>
+    <li><a href="/schedule">Jadwal</a></li>
+    <li><a href="/batch">Batch</a></li><li><a href="/daftar-anime">Daftar Anime</a></li>
+  </ul>
+  <div class="navbar-search">
+    <input type="text" id="navSearch" placeholder="Cari anime..." />
+    <button onclick="doNavSearch()">Cari</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Anime <span>Populer</span></h1>
+  <p>Anime paling banyak ditonton</p>
+</div>
+
+<div class="container">
+  <section class="section">
+    <div id="grid" class="anime-grid"></div>
+    <div id="pagination" class="pagination"></div>
+  </section>
+</div>
+
+<footer><p>GoAnime Wrapper &copy; 2024</p></footer>
+
+<script src="/js/helpers.js"></script>
+<script>
+  initNavSearch();
+
+  async function loadPage(page) {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = loadingHTML();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try {
+      const res  = await fetch(`${API}/api/popular?page=${page}`);
+      const json = await res.json();
+      const list = json.data?.animeList || [];
+      const offset = (page - 1) * list.length;
+      grid.innerHTML = list.length
+        ? list.map((a, i) => `
+            <div class="anime-card" onclick="goAnime('${a.animeId || ''}')">
+              <div class="anime-card-thumb">
+                <img src="${a.poster || '/img/placeholder.svg'}" alt="${a.title}" loading="lazy"
+                     onerror="this.src='/img/placeholder.svg'"/>
+                <span class="anime-card-badge" style="background:#f4a261;color:#000">#${offset + i + 1}</span>
+              </div>
+              <div class="anime-card-info">
+                <div class="anime-card-title">${a.title}</div>
+                <div class="anime-card-meta">
+                  <span>${a.type || 'TV'}</span>
+                  <span>${a.score && a.score !== '0' ? ' ' + a.score : ''}</span>
+                </div>
+              </div>
+            </div>`).join('')
+        : emptyHTML();
+      renderPagination('pagination', page, list.length >= 10, 'loadPage');
+    } catch (err) {
+      grid.innerHTML = errorHTML(err.message);
+    }
+  }
+
+  const p = new URLSearchParams(location.search);
+  loadPage(parseInt(p.get('page')) || 1);
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

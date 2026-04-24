@@ -1,0 +1,627 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detail Anime  GoAnime</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- Font: Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Icons: Lucid -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --font-main: 'Outfit', sans-serif;
+    }
+    body {
+      font-family: var(--font-main);
+    }
+
+    /*  BREADCRUMBS  */
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+    .breadcrumbs a {
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+    .breadcrumbs a:hover {
+      color: var(--accent);
+    }
+    .breadcrumbs span {
+      opacity: 0.5;
+    }
+
+    /*  HERO  */
+    .anime-hero {
+      position: relative;
+      overflow: hidden;
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary);
+    }
+    .anime-hero-backdrop {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(60px) brightness(0.25);
+      z-index: 0;
+      transform: scale(1.1);
+    }
+    .anime-hero-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 2.5rem;
+      align-items: flex-start;
+    }
+
+    /* Poster + score */
+    .anime-poster-col {
+      flex-shrink: 0;
+      width: 220px;
+      position: relative;
+    }
+    .anime-poster-wrapper {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      aspect-ratio: 2/3;
+    }
+    .anime-poster-wrapper img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+    .anime-score-float {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(4px);
+      padding: 4px 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .anime-score-float i {
+      color: var(--accent2);
+      width: 14px; height: 14px;
+    }
+    .anime-score-float span {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #fff;
+    }
+
+    /* Info kanan */
+    .anime-info-col {
+      flex: 1;
+      min-width: 0;
+    }
+    .anime-hero-category {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .anime-hero-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .anime-hero-meta {
+      display: flex;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.7);
+    }
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .hero-meta-item i {
+      width: 16px; height: 16px;
+      color: var(--accent);
+    }
+
+    .anime-synopsis-box {
+      margin-top: 1.5rem;
+    }
+    .synopsis-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .anime-synopsis {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.7;
+      max-height: 150px;
+      overflow-y: auto;
+      padding-right: 1rem;
+    }
+    .anime-synopsis::-webkit-scrollbar { width: 4px; }
+    .anime-synopsis::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
+
+    .anime-genre-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1.5rem;
+    }
+    .genre-pill {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 30px;
+      padding: 0.4rem 1.1rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    .genre-pill:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+    }
+
+    /*  CONTENT TABS CAHCE  */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    /*  DETAIL CARDS  */
+    .detail-section {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: var(--transition);
+    }
+    .detail-section:hover {
+      border-color: rgba(255,255,255,0.1);
+    }
+    .detail-section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #fff;
+    }
+    .detail-section-title i {
+      color: var(--accent);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .info-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .info-value {
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /*  EPISODE GRID  */
+    .ep-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 0.75rem;
+    }
+    .ep-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 0.5rem;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ep-btn span {
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .ep-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0 8px 16px rgba(230, 57, 70, 0.2);
+    }
+    .ep-btn:hover span { color: rgba(255,255,255,0.8); }
+
+    /*  BATCH  */
+    .batch-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .batch-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .batch-card:hover {
+      border-color: var(--accent);
+      transform: translateX(5px);
+    }
+    .batch-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .batch-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(230, 57, 70, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+    .batch-text h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .batch-text p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 900px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .anime-hero-inner { flex-direction: column; align-items: center; text-align: center; }
+      .anime-hero-meta { justify-content: center; }
+      .anime-genre-tags { justify-content: center; }
+      .anime-synopsis { text-align: left; }
+      .anime-poster-col { width: 180px; }
+    }
+    @media (max-width: 640px) {
+      .info-grid { grid-template-columns: 1fr; }
+      .anime-hero-title { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container" style="display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 0;">
+    <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/ongoing">Ongoing</a></li>
+      <li><a href="/movies">Movies</a></li>
+      <li><a href="/schedule">Jadwal</a></li>
+      <li><a href="/batch">Batch</a></li><li><a href="/daftar-anime">Daftar Anime</a></li>
+    </ul>
+    <div class="navbar-search">
+      <input type="text" id="navSearch" placeholder="Cari anime..." />
+      <button onclick="doNavSearch()"><i data-lucide="search" style="width:16px;height:16px;"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div id="animeHero" class="anime-hero">
+  <div class="container">
+    <div class="loading-overlay"><div class="spinner"></div><span>Memuat data anime...</span></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container" id="mainContent" style="display:none; padding-bottom: 5rem;">
+  
+  <div class="content-grid">
+    <!-- INFO & SYNOPSIS (LEFT) -->
+    <div class="col-left">
+      <!-- BATCH -->
+      <div class="detail-section" id="batchSection" style="display:none">
+        <div class="detail-section-title"><i data-lucide="package"></i> Batch Download</div>
+        <div id="batchList" class="batch-list"></div>
+      </div>
+
+      <!-- EPISODE LIST -->
+      <div class="detail-section" id="epSection" style="display:none">
+        <div class="detail-section-title"><i data-lucide="play-circle"></i> Daftar Episode</div>
+        <div id="epGrid" class="ep-grid"></div>
+      </div>
+    </div>
+
+    <!-- DETAILS (RIGHT) -->
+    <div class="col-right">
+      <div class="detail-section" id="detailSection">
+        <div class="detail-section-title"><i data-lucide="info"></i> Informasi Anime</div>
+        <div class="info-grid" id="infoGrid"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="container">
+    <div style="margin-bottom: 1rem;"> <strong>GoAnime</strong></div>
+    <p>Wrapper & UI by Antigravity &copy; 2024</p>
+  </div>
+</footer>
+
+<script src="/js/helpers.js"></script>
+<script>
+  initNavSearch();
+  const params = new URLSearchParams(location.search);
+  const slug   = params.get('slug') || '';
+
+  async function loadAnime() {
+    if (!slug) {
+      document.getElementById('animeHero').innerHTML =
+        `<div class="container">${emptyHTML('', 'Slug tidak ditemukan')}</div>`;
+      return;
+    }
+    try {
+      const res  = await fetch(`${API}/api/anime/${slug}`);
+      const json = await res.json();
+      const d    = json.data || {};
+
+      const title = d.title || d.english || d.japanese || slug;
+
+      const scoreRaw  = d.score;
+      const scoreVal  = scoreRaw ? (typeof scoreRaw === 'object' ? (scoreRaw.value || '').trim() : String(scoreRaw).trim()) : '';
+      const scoreUsers = typeof scoreRaw === 'object' ? (scoreRaw.users || '') : '';
+
+      const synRaw = d.synopsis;
+      let synHTML  = '';
+      let connections = [];
+      if (synRaw) {
+        if (typeof synRaw === 'object' && Array.isArray(synRaw.paragraphs)) {
+          synHTML = synRaw.paragraphs.filter(p => p && p.trim()).map(p => `<p>${p}</p>`).join('');
+          connections = synRaw.connections || [];
+        } else {
+          synHTML = `<p>${synRaw}</p>`;
+        }
+      }
+
+      document.title = `${title}  GoAnime`;
+
+      /*  Genre tags  */
+      const genreTags = (d.genreList || []).map(g =>
+        `<a class="genre-pill" href="/genres/${g.genreId}">${g.title}</a>`
+      ).join('');
+
+      /*  Hero HTML  */
+      document.getElementById('animeHero').innerHTML = `
+        <div class="anime-hero-backdrop" style="background-image: url('${d.poster || ''}')"></div>
+        <div class="container">
+          <div class="breadcrumbs">
+            <a href="/">Home</a> <span>/</span>
+            <a href="/">Anime</a> <span>/</span>
+            <span>${title}</span>
+          </div>
+          
+          <div class="anime-hero-inner">
+            <div class="anime-poster-col">
+              <div class="anime-poster-wrapper">
+                <img src="${d.poster || '/img/placeholder.svg'}" alt="${title}" onerror="this.src='/img/placeholder.svg'"/>
+                ${scoreVal ? `
+                  <div class="anime-score-float">
+                    <i data-lucide="star"></i>
+                    <span>${scoreVal}</span>
+                  </div>` : ''}
+              </div>
+            </div>
+
+            <div class="anime-info-col">
+              <span class="anime-hero-category">${d.type || 'Anime'}</span>
+              <h1 class="anime-hero-title">${title}</h1>
+              
+              <div class="anime-hero-meta">
+                <div class="hero-meta-item"><i data-lucide="calendar"></i> ${d.season || '-'}</div>
+                <div class="hero-meta-item"><i data-lucide="clock"></i> ${d.duration || '-'}</div>
+                <div class="hero-meta-item"><i data-lucide="layers"></i> ${d.episodes || '?'} Eps</div>
+                <div class="hero-meta-item"><i data-lucide="activity"></i> ${d.status || '-'}</div>
+              </div>
+
+              <div class="anime-synopsis-box">
+                <div class="synopsis-title"><i data-lucide="align-left" style="width:18px;height:18px;"></i> SINOPSIS</div>
+                <div class="anime-synopsis">
+                  ${synHTML || '<p>Tidak ada sinopsis.</p>'}
+                </div>
+                ${connections.length ? `
+                <div style="margin-top:1rem">
+                  <div style="font-size:.8rem;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Tonton Juga</div>
+                  <div style="display:flex;flex-direction:column;gap:.35rem">
+                    ${connections.map(c => `
+                      <a href="/anime?slug=${c.animeId}"
+                         style="font-size:.85rem;color:#64b5f6;text-decoration:none;transition:.2s;display:flex;align-items:center;gap:.4rem"
+                         onmouseover="this.style.color='#90caf9'" onmouseout="this.style.color='#64b5f6'">
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,1 11,6 2,11"/></svg>
+                        ${c.title}
+                      </a>`).join('')}
+                  </div>
+                </div>` : ''}
+              </div>
+
+              ${genreTags ? `<div class="anime-genre-tags">${genreTags}</div>` : ''}
+            </div>
+          </div>
+        </div>`;
+
+      document.getElementById('mainContent').style.display = '';
+
+      /*  Detail Grid  */
+      const infoItems = [
+        ['Japanese',      d.japanese],
+        ['English',       d.english],
+        ['Status',        d.status],
+        ['Type',          d.type],
+        ['Source',        d.source],
+        ['Duration',      d.duration],
+        ['Episodes', d.episodes],
+        ['Season',        d.season],
+        ['Studio',        d.studios],
+        ['Producers',     d.producers],
+        ['Aired',         d.aired],
+        ['Score',         scoreVal ? `${scoreVal} (${scoreUsers})` : '-'],
+      ].filter(([, v]) => v != null && String(v).trim() !== '' && v !== 'null');
+
+      document.getElementById('infoGrid').innerHTML = infoItems.map(([lbl, val]) => `
+        <div class="info-item">
+          <div class="info-label">${lbl}</div>
+          <div class="info-value">${val}</div>
+        </div>
+      `).join('');
+
+      /*  Batch  */
+      const batches = d.batchList || [];
+      if (batches.length) {
+        document.getElementById('batchSection').style.display = '';
+        document.getElementById('batchList').innerHTML = batches.map(b => `
+          <div class="batch-card" onclick="window.location.href='/batch-detail?slug=${b.animeId || slug}'">
+            <div class="batch-info">
+              <div class="batch-icon"><i data-lucide="package"></i></div>
+              <div class="batch-text">
+                <h4>${b.title || 'Batch Download'}</h4>
+                <p>Klik untuk melihat daftar link download</p>
+              </div>
+            </div>
+            <i data-lucide="chevron-right"></i>
+          </div>`).join('');
+      }
+
+      /*  Episode list  */
+      const eps = d.episodeList || [];
+      if (eps.length) {
+        document.getElementById('epSection').style.display = '';
+
+        // Search bar
+        document.getElementById('epGrid').insertAdjacentHTML('beforebegin', `
+          <div style="margin-bottom:1rem;position:relative">
+            <input id="epSearch" type="text" placeholder="Cari episode..."
+              style="width:100%;background:var(--bg-card);border:1px solid var(--border);
+                     border-radius:8px;padding:.55rem 1rem .55rem 2.5rem;
+                     color:var(--text-primary);font-size:.88rem;outline:none;
+                     transition:.2s;font-family:inherit"
+              oninput="filterEpisodes(this.value)"
+              onfocus="this.style.borderColor='var(--accent)'"
+              onblur="this.style.borderColor='var(--border)'"/>
+            <svg style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);
+                        color:var(--text-muted);pointer-events:none"
+                 width="15" height="15" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>`);
+
+        // Render semua episode
+        const renderEps = (list) => {
+          document.getElementById('epGrid').innerHTML = list.length
+            ? list.map(e => {
+                const epTitle = String(e.title || '');
+                const epNum   = epTitle.match(/Episode\s+(\d+)/i)?.[1] || epTitle;
+                return `
+                  <div class="ep-btn" onclick="goEpisode('${e.episodeId || ''}')">
+                    <span>Episode</span>${epNum}
+                  </div>`;
+              }).join('')
+            : `<div style="color:var(--text-muted);font-size:.85rem;grid-column:1/-1;padding:.5rem">
+                 Tidak ada episode yang cocok
+               </div>`;
+        };
+
+        renderEps(eps);
+
+        // Filter function  expose ke global
+        window.filterEpisodes = (q) => {
+          const trimmed = q.trim().toLowerCase();
+          if (!trimmed) { renderEps(eps); return; }
+          const filtered = eps.filter(e => {
+            const epTitle = String(e.title || '').toLowerCase();
+            const epNum   = epTitle.match(/episode\s+(\d+)/i)?.[1] || epTitle;
+            return epNum.includes(trimmed) || epTitle.includes(trimmed);
+          });
+          renderEps(filtered);
+        };
+      }
+
+      lucide.createIcons();
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('animeHero').innerHTML =
+        `<div class="container">${errorHTML(err.message)}</div>`;
+    }
+  }
+
+  loadAnime();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
