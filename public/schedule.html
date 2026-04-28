@@ -1,10 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jadwal Tayang  GoAnime</title>
+  <title>Jadwal Tayang  MiruApp</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" type="image/x-icon" href="/icon/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="/icon/apple-touch-icon.png" />
+  <link rel="manifest" href="/icon/site.webmanifest" />
   <!-- Font: Outfit -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Icons: Lucid -->
@@ -184,7 +189,7 @@
 
 <nav class="navbar">
   <div class="container" style="display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 0;">
-    <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+    <a class="navbar-brand" href="/"> <span>MiruApp</span></a>
     <ul class="navbar-nav">
       <li><a href="/">Home</a></li>
       <li><a href="/ongoing">Ongoing</a></li>
@@ -224,7 +229,7 @@
 
 <footer>
   <div class="container">
-    <p>GoAnime Wrapper & UI &copy; 2024</p>
+    <p>MiruApp Wrapper & UI &copy; 2024</p>
   </div>
 </footer>
 
@@ -267,7 +272,7 @@
     }
 
     grid.innerHTML = list.map(a => `
-      <div class="schedule-card" onclick="goAnime('${a.animeId || ''}')">
+      <div class="schedule-card" onclick="MiruApp('${a.animeId || ''}')">
         <div class="schedule-card-thumb">
           <img src="${a.poster || '/img/placeholder.svg'}" alt="${a.title}"
                loading="lazy" onerror="this.src='/img/placeholder.svg'"/>

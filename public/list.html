@@ -1,12 +1,17 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Daftar Anime - GoAnime</title>
+  <title>Daftar Anime - MiruApp</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" type="image/x-icon" href="/icon/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="/icon/apple-touch-icon.png" />
+  <link rel="manifest" href="/icon/site.webmanifest" />
   <style>
-    /* ── FILTER PANEL ── */
+    /* -- FILTER PANEL -- */
     .filter-panel {
       background: var(--bg-secondary);
       border: 1px solid var(--border);
@@ -112,7 +117,7 @@
     }
     .filter-search-btn:hover { background: #0288d1; }
 
-    /* ── ALPHABET BAR ── */
+    /* -- ALPHABET BAR -- */
     .alpha-bar {
       display: flex;
       flex-wrap: wrap;
@@ -142,7 +147,7 @@
     .alpha-btn:hover { border-color: var(--accent); color: var(--text-primary); }
     .alpha-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* ── LIST ── */
+    /* -- LIST -- */
     .anime-group { margin-bottom: 2.5rem; }
     .group-header {
       font-size: 1.4rem;
@@ -191,7 +196,7 @@
 <body>
 
 <nav class="navbar">
-  <a class="navbar-brand" href="/"><span>GoAnime</span></a>
+  <a class="navbar-brand" href="/"><span>MiruApp</span></a>
   <ul class="navbar-nav">
     <li><a href="/">Home</a></li>
     <li><a href="/ongoing">Ongoing</a></li>
@@ -208,7 +213,7 @@
 
 <div class="page-header">
   <h1>Daftar <span>Semua Anime</span></h1>
-  <p>Seluruh koleksi anime yang tersedia di GoAnime</p>
+  <p>Seluruh koleksi anime yang tersedia di MiruApp</p>
 </div>
 
 <div class="container">
@@ -301,7 +306,7 @@
   </section>
 </div>
 
-<footer><p>GoAnime Wrapper &copy; 2024</p></footer>
+<footer><p>MiruApp Wrapper &copy; 2024</p></footer>
 
 <script src="/js/helpers.js"></script>
 <script>
@@ -312,7 +317,7 @@
   let currentSort = 'az';
   let genreList  = [];
 
-  /* ── Load genres ── */
+  /* -- Load genres -- */
   async function loadGenres() {
     try {
       const res  = await fetch(`${API}/api/genres`);
@@ -331,7 +336,7 @@
     }
   }
 
-  /* ── Load list ── */
+  /* -- Load list -- */
   async function loadList() {
     try {
       const res  = await fetch(`${API}/api/list`);
@@ -344,14 +349,14 @@
     }
   }
 
-  /* ── Sort ── */
+  /* -- Sort -- */
   function setSort(val, el) {
     currentSort = val;
     document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
   }
 
-  /* ── Apply filter ── */
+  /* -- Apply filter -- */
   function applyFilter() {
     const status = document.querySelector('input[name="status"]:checked')?.value || '';
     const type   = document.querySelector('input[name="type"]:checked')?.value || '';
@@ -360,7 +365,7 @@
     // Filter dari flat list
     // Note: list API tidak punya status/type/genre per item,
     // jadi filter ini bekerja sebagai navigasi ke halaman yang sesuai
-    // Kalau ada filter aktif → redirect ke halaman yang tepat
+    // Kalau ada filter aktif ? redirect ke halaman yang tepat
     if (status === 'Ongoing' && !type && !genres.length) {
       window.location.href = '/ongoing'; return;
     }
@@ -410,7 +415,7 @@
         <div class="group-header">${k}</div>
         <div class="anime-list-grid">
           ${grouped[k].map(a => `
-            <div class="anime-list-item" onclick="goAnime('${a.animeId}')">
+            <div class="anime-list-item" onclick="MiruApp('${a.animeId}')">
               ${a.title}
             </div>`).join('')}
         </div>

@@ -1,10 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tonton Episode  GoAnime</title>
+  <title>Tonton Episode  MiruApp</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" type="image/x-icon" href="/icon/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="/icon/apple-touch-icon.png" />
+  <link rel="manifest" href="/icon/site.webmanifest" />
   <!-- Font: Outfit -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Icons: Lucide -->
@@ -280,7 +285,7 @@
 
 <nav class="navbar">
   <div class="container" style="display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 0;">
-    <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+    <a class="navbar-brand" href="/"> <span>MiruApp</span></a>
     <ul class="navbar-nav">
       <li><a href="/">Home</a></li>
       <li><a href="/ongoing">Ongoing</a></li>
@@ -337,7 +342,7 @@
 
 <footer>
   <div class="container">
-    <p>GoAnime Wrapper & UI &copy; 2024</p>
+    <p>MiruApp Wrapper & UI &copy; 2024</p>
   </div>
 </footer>
 
@@ -366,7 +371,7 @@
       const json = await res.json();
       const d    = json.data || {};
 
-      document.title = `${d.title || 'Episode'}  GoAnime`;
+      document.title = `${d.title || 'Episode'}  MiruApp`;
       document.getElementById('epTitle').innerHTML = `<span>Episode</span> ${d.title || slug}`;
 
       /*  Server Selection  */
@@ -416,7 +421,7 @@
         navHTML += `<div class="nav-btn" onclick="goEpisode('${d.prevEpisode.episodeId}')"><i data-lucide="arrow-left"></i> <span>Eps Sebelumnya</span></div>`;
       }
       if (d.animeId) {
-        navHTML += `<div class="nav-btn" onclick="goAnime('${d.animeId}')"><i data-lucide="list"></i> <span>Semua Eps</span></div>`;
+        navHTML += `<div class="nav-btn" onclick="MiruApp('${d.animeId}')"><i data-lucide="list"></i> <span>Semua Eps</span></div>`;
       }
       if (d.nextEpisode?.episodeId) {
         navHTML += `<div class="nav-btn" onclick="goEpisode('${d.nextEpisode.episodeId}')"><span>Eps Berikutnya</span> <i data-lucide="arrow-right"></i></div>`;

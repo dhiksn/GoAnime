@@ -1,10 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GoAnime  Home</title>
+  <title>MiruApp  Home</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" type="image/x-icon" href="/icon/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="/icon/apple-touch-icon.png" />
+  <link rel="manifest" href="/icon/site.webmanifest" />
   <style>
     /*  TOP 10 SLIDER  */
     .top10-wrapper {
@@ -147,7 +152,7 @@
 <body>
 
 <nav class="navbar">
-  <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+  <a class="navbar-brand" href="/"> <span>MiruApp</span></a>
   <ul class="navbar-nav">
     <li><a href="/" class="active">Home</a></li>
     <li><a href="/ongoing">Ongoing</a></li>
@@ -207,7 +212,7 @@
 </div>
 
 <footer>
-  <p>GoAnime Wrapper &copy; 2024  Data dari <a href="#">GoAnime</a></p>
+  <p>MiruApp Wrapper &copy; 2024  Data dari <a href="#">MiruApp</a></p>
 </footer>
 
 <script src="/js/helpers.js"></script>
@@ -264,7 +269,7 @@
       const track  = document.getElementById('top10Track');
       track.innerHTML = top10.length
         ? top10.map(a => `
-            <div class="top10-card" onclick="goAnime('${a.animeId || ''}')">
+            <div class="top10-card" onclick="MiruApp('${a.animeId || ''}')">
               <div class="top10-card-thumb">
                 <img src="${a.poster || '/img/placeholder.svg'}" alt="${a.title}"
                      loading="lazy" onerror="this.src='/img/placeholder.svg'"/>
@@ -295,7 +300,7 @@
             const genres = (a.genreList || []).slice(0,2).map(g => g.title).join(', ');
             const score  = a.score && a.score !== '0' && a.score !== '' ? a.score : null;
             return `
-            <div class="anime-card" onclick="goAnime('${a.animeId || ''}')">
+            <div class="anime-card" onclick="MiruApp('${a.animeId || ''}')">
               <div class="anime-card-thumb">
                 <img src="${a.poster || '/img/placeholder.svg'}" alt="${a.title}"
                      loading="lazy" onerror="this.src='/img/placeholder.svg'"/>

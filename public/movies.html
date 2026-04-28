@@ -1,21 +1,27 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime Movies  GoAnime</title>
+  <title>Anime Movies  MiruApp</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" type="image/x-icon" href="/icon/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="/icon/apple-touch-icon.png" />
+  <link rel="manifest" href="/icon/site.webmanifest" />
 </head>
 <body>
 
 <nav class="navbar">
-  <a class="navbar-brand" href="/"> <span>GoAnime</span></a>
+  <a class="navbar-brand" href="/"> <span>MiruApp</span></a>
   <ul class="navbar-nav">
     <li><a href="/">Home</a></li>
     <li><a href="/ongoing">Ongoing</a></li>
     <li><a href="/movies" class="active">Movies</a></li>
     <li><a href="/schedule">Jadwal</a></li>
-    <li><a href="/batch">Batch</a></li><li><a href="/daftar-anime">Daftar Anime</a></li>
+    <li><a href="/batch">Batch</a></li>
+    <li><a href="/daftar-anime">Daftar Anime</a></li>
   </ul>
   <div class="navbar-search">
     <input type="text" id="navSearch" placeholder="Cari anime..." />
@@ -35,7 +41,7 @@
   </section>
 </div>
 
-<footer><p>GoAnime Wrapper &copy; 2024</p></footer>
+<footer><p>MiruApp Wrapper &copy; 2024</p></footer>
 
 <script src="/js/helpers.js"></script>
 <script>
@@ -45,7 +51,7 @@
     const genres = (a.genreList || []).slice(0, 2).map(g => g.title).join(', ');
     const score  = a.score && a.score !== '0' && a.score !== '' ? a.score : null;
     return `
-      <div class="anime-card" onclick="goAnime('${a.animeId || ''}')">
+      <div class="anime-card" onclick="MiruApp('${a.animeId || ''}')">
         <div class="anime-card-thumb">
           <img src="${a.poster || '/img/placeholder.svg'}" alt="${a.title}" loading="lazy"
                onerror="this.src='/img/placeholder.svg'"/>

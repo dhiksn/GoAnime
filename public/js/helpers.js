@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Shared helpers  struktur data sudah disesuaikan dengan response asli API
  * Key penting:
  *   animeId    slug untuk navigasi
@@ -9,7 +9,7 @@
 const API = '';
 
 /*  Navigasi  */
-function goAnime(animeId)   { window.location.href = `/anime?slug=${animeId}`; }
+function MiruApp(animeId)   { window.location.href = `/anime?slug=${animeId}`; }
 function goEpisode(epId)    { window.location.href = `/episode?slug=${epId}`; }
 function goBatch(animeId)   { window.location.href = `/batch-detail?slug=${animeId}`; }
 function goGenre(genreId)   { window.location.href = `/genres/${genreId}`; }
@@ -37,7 +37,7 @@ function animeCard(a) {
   const id    = a.animeId || a.slug || '';
   const score = a.score && a.score !== '0' && a.score !== '' ? a.score : null;
   return `
-    <div class="anime-card" onclick="goAnime('${id}')">
+    <div class="anime-card" onclick="MiruApp('${id}')">
       <div class="anime-card-thumb">
         <img src="${a.poster || '/img/placeholder.svg'}" alt="${a.title}" loading="lazy"
              onerror="this.src='/img/placeholder.svg'"/>
@@ -56,7 +56,7 @@ function recentCard(e) {
   const iconPlay    = `<svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,1 11,6 2,11"/></svg>`;
   const iconClock   = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
   return `
-    <div class="episode-card" onclick="goAnime('${id}')">
+    <div class="episode-card" onclick="MiruApp('${id}')">
       <div class="episode-card-thumb">
         <img src="${e.poster || '/img/placeholder.svg'}" alt="${e.title}" loading="lazy"
              onerror="this.src='/img/placeholder.svg'"/>
