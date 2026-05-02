@@ -206,3 +206,46 @@ exports.me = async (req, res) => {
     return res.status(401).json({ success: false, message: 'Token tidak valid' });
   }
 };
+
+// POST /api/auth/avatar  (multipart/form-data, field: "avatar")
+exports.uploadAvatar = async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer '))
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+  try {
+    const payload = jwt.verify(auth.slice(7), JWT_SECRET);
+
+    if (!req.file)
+      return res.status(400).json({ success: false, message: 'File tidak ditemukan' });
+
+    const ext  = req.file.originalname.split('.').pop().toLowerCase() || 'jpg';
+    const path = `avatars/${payload.id}.${ext}`;
+
+    // Upload ke Supabase Storage pakai service role (bypass RLS)
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: true,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+    const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+    // Simpan avatar_url ke tabel users
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', payload.id);
+
+    if (updateError) throw updateError;
+
+    return res.json({ success: true, avatar_url: avatarUrl });
+  } catch (err) {
+    console.error('uploadAvatar error:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Gagal upload avatar' });
+  }
+};

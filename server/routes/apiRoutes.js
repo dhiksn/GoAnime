@@ -1,9 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const controller = require('../controllers/apiController');
 const auth = require('../controllers/authController');
 const user = require('../controllers/userController');
 const requireAuth = require('../middleware/authMiddleware');
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 30 * 1024 * 1024 }, // max 2MB
+  fileFilter: (_, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Hanya file gambar yang diizinkan'));
+  },
+});
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 router.post('/auth/register', auth.register);
@@ -12,6 +22,7 @@ router.post('/auth/logout',   auth.logout);
 router.get('/auth/me',        auth.me);
 router.patch('/auth/profile',         auth.updateProfile);
 router.post('/auth/change-password',  auth.changePassword);
+router.post('/auth/avatar',           upload.single('avatar'), auth.uploadAvatar);
 
 // ─── User — Watch History (butuh login) ──────────────────────────────────────
 router.get   ('/user/history',         requireAuth, user.getHistory);
