@@ -46,6 +46,10 @@ app.get('/episode',      send('episode.html'));
 app.get('/daftar-anime', send('list.html'));
 app.get('/list',         send('list.html'));
 
+app.get('/login',    send('login.html'));
+app.get('/register', send('register.html'));
+app.get('/profile',  send('profile.html'));
+
 // ── 404 ─────────────────────────────────────────────────────
 app.use((req, res) => {
   if (req.path.startsWith('/api')) {

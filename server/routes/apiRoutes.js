@@ -1,6 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/apiController');
+const auth = require('../controllers/authController');
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+router.post('/auth/register', auth.register);
+router.post('/auth/login',    auth.login);
+router.post('/auth/logout',   auth.logout);
+router.get('/auth/me',        auth.me);
 
 // ─── List & Browse ────────────────────────────────────────────────────────────
 

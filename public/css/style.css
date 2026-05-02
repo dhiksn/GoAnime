@@ -597,3 +597,55 @@ footer a { color: var(--accent); }
 #loading-bar.active { width: 70%; }
 #loading-bar.done   { width: 100%; opacity: 0; }
 
+
+/* ============================================================
+   AUTH NAV
+   ============================================================ */
+#navAuth {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.nav-auth-link {
+  padding: .35rem .85rem;
+  border-radius: 6px;
+  font-size: .85rem;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+.nav-auth-link:hover { color: var(--text-primary); background: var(--bg-card); }
+.nav-auth-register {
+  background: var(--accent);
+  color: #fff !important;
+}
+.nav-auth-register:hover { background: var(--accent-dark) !important; }
+
+.nav-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .3rem .75rem .3rem .3rem;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+  font-size: .85rem;
+  color: var(--text-primary);
+}
+.nav-profile-btn:hover { border-color: var(--accent); }
+.nav-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+.nav-username {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

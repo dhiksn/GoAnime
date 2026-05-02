@@ -160,9 +160,12 @@
     <li><a href="/schedule">Jadwal</a></li>
     <li><a href="/batch">Batch</a></li><li><a href="/daftar-anime">Daftar Anime</a></li>
   </ul>
-  <div class="navbar-search">
-    <input type="text" id="navSearch" placeholder="Cari anime..." />
-    <button onclick="doNavSearch()">Cari</button>
+  <div style="display:flex;align-items:center;gap:.75rem">
+    <div class="navbar-search">
+      <input type="text" id="navSearch" placeholder="Cari anime..." />
+      <button onclick="doNavSearch()">Cari</button>
+    </div>
+    <div id="navAuth"></div>
   </div>
 </nav>
 
@@ -216,8 +219,10 @@
 </footer>
 
 <script src="/js/helpers.js"></script>
+<script src="/js/auth.js"></script>
 <script>
   initNavSearch();
+  renderAuthNav();
 
   /*  Slider state  */
   let sliderIndex  = 0;

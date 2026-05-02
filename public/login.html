@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MiruApp — Masuk</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" type="image/x-icon" href="/icon/favicon.ico" />
+  <style>
+    .auth-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .auth-box {
+      width: 100%;
+      max-width: 400px;
+    }
+    .auth-brand {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: .5px;
+      margin-bottom: .35rem;
+    }
+    .auth-sub {
+      color: var(--text-muted);
+      font-size: .9rem;
+      margin-bottom: 2rem;
+    }
+    .auth-error {
+      background: rgba(230,57,70,.1);
+      border: 1px solid rgba(230,57,70,.35);
+      color: #ff8080;
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      font-size: .85rem;
+      margin-bottom: 1.25rem;
+      display: none;
+    }
+    .auth-error.show { display: block; }
+    .field-label {
+      display: block;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .5px;
+      color: var(--text-muted);
+      margin-bottom: .35rem;
+      text-transform: uppercase;
+    }
+    .field-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .field-wrap input {
+      width: 100%;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      color: #fff;
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .field-wrap input:focus {
+      border-color: rgba(255,255,255,.35);
+    }
+    .field-wrap input::placeholder { color: rgba(255,255,255,.25); }
+    .toggle-pass {
+      position: absolute;
+      right: .75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: rgba(255,255,255,.35);
+      font-size: 1rem;
+      padding: 0;
+      line-height: 1;
+    }
+    .toggle-pass:hover { color: rgba(255,255,255,.7); }
+    .btn-submit {
+      width: 100%;
+      height: 48px;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: .75rem;
+      transition: opacity .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+    }
+    .btn-submit:hover { opacity: .9; }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .auth-footer {
+      text-align: center;
+      margin-top: 1.25rem;
+      font-size: .85rem;
+      color: var(--text-muted);
+    }
+    .auth-footer a { color: #fff; font-weight: 700; }
+    .spinner-sm {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(0,0,0,.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-brand">MiruApp</div>
+      <div class="auth-sub">Masuk ke akunmu</div>
+
+      <div class="auth-error" id="authError"></div>
+
+      <label class="field-label" for="email">Email</label>
+      <div class="field-wrap">
+        <input type="email" id="email" placeholder="email@contoh.com" autocomplete="email" />
+      </div>
+
+      <label class="field-label" for="password">Password</label>
+      <div class="field-wrap">
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+        <button class="toggle-pass" onclick="togglePass('password', this)" tabindex="-1">👁</button>
+      </div>
+
+      <button class="btn-submit" id="btnLogin" onclick="doLogin()">Masuk</button>
+
+      <div class="auth-footer">
+        Belum punya akun? <a href="/register">Daftar</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Redirect kalau sudah login
+    if (localStorage.getItem('auth_token')) {
+      window.location.href = '/';
+    }
+
+    function togglePass(id, btn) {
+      const inp = document.getElementById(id);
+      if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+      else { inp.type = 'password'; btn.textContent = '👁'; }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('authError');
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    function setLoading(on) {
+      const btn = document.getElementById('btnLogin');
+      btn.disabled = on;
+      btn.innerHTML = on
+        ? '<div class="spinner-sm"></div>'
+        : 'Masuk';
+    }
+
+    async function doLogin() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      document.getElementById('authError').classList.remove('show');
+
+      if (!email || !password) {
+        showError('Email dan password wajib diisi');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res  = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('auth_token', data.token);
+          localStorage.setItem('auth_user', JSON.stringify(data.user));
+          window.location.href = '/';
+        } else {
+          showError(data.message || 'Login gagal');
+        }
+      } catch {
+        showError('Gagal terhubung ke server');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Enter key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  </script>
+</body>
+</html>
