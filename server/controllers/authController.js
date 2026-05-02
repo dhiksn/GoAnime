@@ -100,7 +100,94 @@ exports.logout = async (req, res) => {
   return res.json({ success: true, message: 'Logout berhasil' });
 };
 
-// GET /api/auth/me  (optional — verify token)
+// PATCH /api/auth/profile
+exports.updateProfile = async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer '))
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+  try {
+    const payload = jwt.verify(auth.slice(7), JWT_SECRET);
+    const { username, email, avatar_url } = req.body;
+
+    const updates = {};
+    if (username) updates.username = username;
+    if (email)    updates.email    = email;
+    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+
+    if (Object.keys(updates).length === 0)
+      return res.status(400).json({ success: false, message: 'Tidak ada data yang diupdate' });
+
+    // Cek duplikat username/email
+    if (username || email) {
+      const orClauses = [];
+      if (username) orClauses.push(`username.eq.${username}`);
+      if (email)    orClauses.push(`email.eq.${email}`);
+      const { data: existing } = await supabase
+        .from('users')
+        .select('id')
+        .or(orClauses.join(','))
+        .neq('id', payload.id)
+        .maybeSingle();
+      if (existing)
+        return res.status(409).json({ success: false, message: 'Username atau email sudah digunakan' });
+    }
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', payload.id)
+      .select('id, username, email, role, avatar_url')
+      .single();
+
+    if (error) throw error;
+    return res.json({ success: true, user });
+  } catch (err) {
+    console.error('updateProfile error:', err);
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan server' });
+  }
+};
+
+// POST /api/auth/change-password
+exports.changePassword = async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer '))
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+  try {
+    const payload = jwt.verify(auth.slice(7), JWT_SECRET);
+    const { current_password, new_password } = req.body;
+
+    if (!current_password || !new_password)
+      return res.status(400).json({ success: false, message: 'Password lama dan baru wajib diisi' });
+
+    if (new_password.length < 6)
+      return res.status(400).json({ success: false, message: 'Password baru minimal 6 karakter' });
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('password_hash')
+      .eq('id', payload.id)
+      .single();
+
+    if (error || !user)
+      return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
+
+    const valid = await bcrypt.compare(current_password, user.password_hash);
+    if (!valid)
+      return res.status(401).json({ success: false, message: 'Password lama salah' });
+
+    const password_hash = await bcrypt.hash(new_password, 12);
+    await supabase.from('users').update({ password_hash }).eq('id', payload.id);
+
+    return res.json({ success: true, message: 'Password berhasil diubah' });
+  } catch (err) {
+    console.error('changePassword error:', err);
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan server' });
+  }
+};
+
+// GET /api/auth/me
 exports.me = async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth?.startsWith('Bearer '))

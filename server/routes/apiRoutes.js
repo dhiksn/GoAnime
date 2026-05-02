@@ -10,6 +10,8 @@ router.post('/auth/register', auth.register);
 router.post('/auth/login',    auth.login);
 router.post('/auth/logout',   auth.logout);
 router.get('/auth/me',        auth.me);
+router.patch('/auth/profile',         auth.updateProfile);
+router.post('/auth/change-password',  auth.changePassword);
 
 // ─── User — Watch History (butuh login) ──────────────────────────────────────
 router.get   ('/user/history',         requireAuth, user.getHistory);
