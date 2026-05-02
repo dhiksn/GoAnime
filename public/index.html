@@ -190,6 +190,15 @@
 <!--  MAIN CONTENT  -->
 <div class="container">
 
+  <!-- CONTINUE WATCHING -->
+  <section class="section" id="continueWatchingSection" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div class="section-title" style="margin-bottom:0">Lanjutkan Menonton</div>
+      <button onclick="clearContinueWatching()" style="font-size:.75rem;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:.25rem .5rem;border-radius:4px;transition:.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">Hapus Semua</button>
+    </div>
+    <div id="continueWatchingGrid" class="anime-grid"></div>
+  </section>
+
   <!-- RECENT EPISODES -->
   <section class="section">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
@@ -328,6 +337,60 @@
   }
 
   loadHome();
+
+  /*  CONTINUE WATCHING LOGIC  */
+  async function loadContinueWatching() {
+    if (!Auth.isLoggedIn()) return; // sembunyikan jika belum login
+
+    try {
+      const res  = await authFetch('/api/user/history');
+      const json = await res.json();
+      if (!json.success || !json.data?.length) return;
+
+      document.getElementById('continueWatchingSection').style.display = 'block';
+      const grid   = document.getElementById('continueWatchingGrid');
+      const recent = json.data.slice(0, 6); // 6 terakhir
+
+      grid.innerHTML = recent.map(item => {
+        const progress = item.watch_progress || 0;
+        const date = item.last_watched
+          ? new Date(item.last_watched).toLocaleDateString('id-ID', { day:'numeric', month:'short' })
+          : '';
+        return `
+          <div class="anime-card" onclick="window.location.href='/episode?slug=${item.video_slug}'">
+            <div class="anime-card-thumb">
+              <img src="${item.video_cover_url || '/img/placeholder.svg'}"
+                   alt="${item.video_title || ''}"
+                   loading="lazy" onerror="this.src='/img/placeholder.svg'"/>
+              ${progress > 0 ? `
+                <span class="anime-card-badge" style="background:rgba(0,0,0,.65);left:auto;right:6px;color:#fff;font-size:.6rem">
+                  ${progress}%
+                </span>` : ''}
+              <div class="anime-card-info">
+                <div class="anime-card-title">${item.video_title || item.video_slug}</div>
+                <div class="anime-card-meta">${date}</div>
+              </div>
+              ${progress > 0 ? `
+                <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.15)">
+                  <div style="height:100%;background:var(--accent);width:${progress}%;transition:width .3s"></div>
+                </div>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+
+    } catch (err) {
+      console.warn('loadContinueWatching failed:', err);
+    }
+  }
+
+  async function clearContinueWatching() {
+    if (!confirm('Hapus semua riwayat tontonan?')) return;
+    await authFetch('/api/user/history', { method: 'DELETE' });
+    document.getElementById('continueWatchingSection').style.display = 'none';
+  }
+
+  // Load continue watching on page load
+  loadContinueWatching();
 </script>
 </body>
 </html>

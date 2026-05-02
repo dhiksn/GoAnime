@@ -195,6 +195,42 @@
       box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
     }
 
+    /*  ACTION BUTTONS  */
+    .anime-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 0.65rem 1.25rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .action-btn:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.25);
+      transform: translateY(-2px);
+    }
+    .action-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .action-btn i {
+      width: 16px;
+      height: 16px;
+    }
+
     /*  CONTENT TABS CAHCE  */
     .content-grid {
       display: grid;
@@ -357,11 +393,15 @@
       <li><a href="/ongoing">Ongoing</a></li>
       <li><a href="/movies">Movies</a></li>
       <li><a href="/schedule">Jadwal</a></li>
-      <li><a href="/batch">Batch</a></li><li><a href="/daftar-anime">Daftar Anime</a></li>
+      <li><a href="/batch">Batch</a></li>
+      <li><a href="/daftar-anime">Daftar Anime</a></li>
     </ul>
-    <div class="navbar-search">
-      <input type="text" id="navSearch" placeholder="Cari anime..." />
-      <button onclick="doNavSearch()"><i data-lucide="search" style="width:16px;height:16px;"></i></button>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <div class="navbar-search">
+        <input type="text" id="navSearch" placeholder="Cari anime..." />
+        <button onclick="doNavSearch()"><i data-lucide="search" style="width:16px;height:16px;"></i></button>
+      </div>
+      <div id="navAuth"></div>
     </div>
   </div>
 </nav>
@@ -411,8 +451,10 @@
 </footer>
 
 <script src="/js/helpers.js"></script>
+<script src="/js/auth.js"></script>
 <script>
   initNavSearch();
+  renderAuthNav();
   const params = new URLSearchParams(location.search);
   const slug   = params.get('slug') || '';
 
@@ -426,6 +468,14 @@
       const res  = await fetch(`${API}/api/anime/${slug}`);
       const json = await res.json();
       const d    = json.data || {};
+
+      // Store anime data for actions
+      currentAnimeData = {
+        animeId: d.animeId || slug,
+        title: d.title,
+        poster: d.poster,
+        genres: (d.genreList || []).map(g => g.title)
+      };
 
       const title = d.title || d.english || d.japanese || slug;
 
@@ -506,6 +556,13 @@
               </div>
 
               ${genreTags ? `<div class="anime-genre-tags">${genreTags}</div>` : ''}
+              
+              <div class="anime-actions">
+                <button class="action-btn" id="favoriteBtn" onclick="handleFavorite()">
+                  <i data-lucide="heart"></i>
+                  <span id="favoriteBtnText">Tambah ke Favorit</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>`;
@@ -609,12 +666,93 @@
 
       lucide.createIcons();
 
+      // Update favorite button
+      updateActionButtons();
+
     } catch (err) {
       console.error(err);
       document.getElementById('animeHero').innerHTML =
         `<div class="container">${errorHTML(err.message)}</div>`;
     }
   }
+
+  let currentAnimeData = null;
+
+  function updateActionButtons() {
+    if (!currentAnimeData) return;
+    if (!Auth.isLoggedIn()) {
+      const favBtn = document.getElementById('favoriteBtn');
+      if (favBtn) favBtn.style.display = 'none';
+      return;
+    }
+
+    isFavorite(currentAnimeData.animeId).then(isFav => {
+      const favBtn     = document.getElementById('favoriteBtn');
+      const favBtnText = document.getElementById('favoriteBtnText');
+      if (!favBtn) return;
+      favBtn.classList.toggle('active', isFav);
+      favBtnText.textContent = isFav ? 'Hapus dari Favorit' : 'Tambah ke Favorit';
+    });
+  }
+
+  async function handleFavorite() {
+    if (!Auth.isLoggedIn()) { window.location.href = '/login'; return; }
+    if (!currentAnimeData) return;
+
+    const favBtn     = document.getElementById('favoriteBtn');
+    const favBtnText = document.getElementById('favoriteBtnText');
+    favBtn.disabled  = true;
+
+    const isAdded = await toggleFavorite({
+      animeId: currentAnimeData.animeId,
+      title:   currentAnimeData.title,
+      poster:  currentAnimeData.poster,
+    });
+
+    favBtn.classList.toggle('active', isAdded);
+    favBtnText.textContent = isAdded ? 'Hapus dari Favorit' : 'Tambah ke Favorit';
+    favBtn.disabled = false;
+    showNotification(isAdded ? 'Ditambahkan ke favorit!' : 'Dihapus dari favorit');
+  }
+
+  function showNotification(message) {
+    const notif = document.createElement('div');
+    notif.textContent = message;
+    notif.style.cssText = `
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 9999;
+      animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(notif);
+
+    setTimeout(() => {
+      notif.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => notif.remove(), 300);
+    }, 2000);
+  }
+
+  // Add animation styles
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
 
   loadAnime();
 </script>

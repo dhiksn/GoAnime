@@ -49,6 +49,8 @@ app.get('/list',         send('list.html'));
 app.get('/login',    send('login.html'));
 app.get('/register', send('register.html'));
 app.get('/profile',  send('profile.html'));
+app.get('/profile/history',   send('profile/history.html'));
+app.get('/profile/favorites', send('profile/favorites.html'));
 
 // ── 404 ─────────────────────────────────────────────────────
 app.use((req, res) => {

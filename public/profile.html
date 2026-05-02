@@ -75,8 +75,22 @@
 </head>
 <body>
   <nav class="navbar">
-    <a class="navbar-brand" href="/">▶ <span>MiruApp</span></a>
-    <div class="navbar-nav" id="navLinks"></div>
+    <a class="navbar-brand" href="/"> <span>MiruApp</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/ongoing">Ongoing</a></li>
+      <li><a href="/movies">Movies</a></li>
+      <li><a href="/schedule">Jadwal</a></li>
+      <li><a href="/batch">Batch</a></li>
+      <li><a href="/daftar-anime">Daftar Anime</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <div class="navbar-search">
+        <input type="text" id="navSearch" placeholder="Cari anime..." />
+        <button onclick="doNavSearch()">Cari</button>
+      </div>
+      <div id="navAuth"></div>
+    </div>
   </nav>
 
   <div class="profile-wrap">
@@ -91,11 +105,11 @@
 
     <hr class="divider" />
 
-    <div class="menu-item" onclick="alert('Coming soon')">
+    <div class="menu-item" onclick="window.location.href='/profile/history'">
       <span class="menu-icon">🕐</span> Riwayat Tontonan
       <span class="menu-chevron">›</span>
     </div>
-    <div class="menu-item" onclick="alert('Coming soon')">
+    <div class="menu-item" onclick="window.location.href='/profile/favorites'">
       <span class="menu-icon">❤️</span> Favorit
       <span class="menu-chevron">›</span>
     </div>
@@ -108,7 +122,12 @@
     </div>
   </div>
 
+  <script src="/js/helpers.js"></script>
+  <script src="/js/auth.js"></script>
   <script>
+    initNavSearch();
+    renderAuthNav();
+
     const token = localStorage.getItem('auth_token');
     const user  = JSON.parse(localStorage.getItem('auth_user') || 'null');
 
@@ -120,16 +139,6 @@
       document.getElementById('profileName').textContent   = user.username || '—';
       document.getElementById('profileEmail').textContent  = user.email    || '—';
       document.getElementById('profileRole').textContent   = (user.role || 'user').toUpperCase();
-    }
-
-    // Navbar
-    const nav = document.getElementById('navLinks');
-    if (token && user) {
-      nav.innerHTML = `
-        <a href="/">Beranda</a>
-        <a href="/profile" class="active" style="color:var(--accent)">${(user.username||'?')[0].toUpperCase()} ${user.username}</a>`;
-    } else {
-      nav.innerHTML = `<a href="/">Beranda</a><a href="/login">Masuk</a>`;
     }
 
     function doLogout() {

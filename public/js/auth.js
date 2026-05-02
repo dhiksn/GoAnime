@@ -36,3 +36,18 @@ function renderAuthNav(containerId = 'navAuth') {
       <a href="/register" class="nav-auth-link nav-auth-register">Daftar</a>`;
   }
 }
+
+/**
+ * Helper untuk API call dengan auth token
+ */
+function authFetch(url, options = {}) {
+  const token = Auth.getToken();
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
+}

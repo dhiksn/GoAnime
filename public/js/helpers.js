@@ -120,3 +120,94 @@ function errorHTML(msg) {
 
 
 
+
+/*  Watch History Management  */
+function saveWatchHistory(data) {
+  // Simpan ke database jika sudah login
+  if (Auth.isLoggedIn()) {
+    authFetch('/api/user/history', {
+      method: 'POST',
+      body: JSON.stringify({
+        video_slug:      data.episodeId,
+        video_title:     data.episodeTitle || data.animeTitle,
+        video_cover_url: data.poster,
+        watch_progress:  data.progress || 0,
+      }),
+    }).catch(err => console.warn('saveWatchHistory failed:', err));
+  }
+}
+
+/*  Favorites Management  */
+async function toggleFavorite(anime) {
+  if (!Auth.isLoggedIn()) {
+    window.location.href = '/login';
+    return false;
+  }
+
+  const checkRes = await authFetch(`/api/user/favorites/check/${encodeURIComponent(anime.animeId)}`);
+  const check    = await checkRes.json();
+
+  if (check.isFavorite) {
+    await authFetch(`/api/user/favorites/${encodeURIComponent(anime.animeId)}`, { method: 'DELETE' });
+    return false; // removed
+  } else {
+    await authFetch('/api/user/favorites', {
+      method: 'POST',
+      body: JSON.stringify({
+        video_slug:      anime.animeId,
+        video_title:     anime.title,
+        video_cover_url: anime.poster,
+      }),
+    });
+    return true; // added
+  }
+}
+
+async function isFavorite(animeId) {
+  if (!Auth.isLoggedIn()) return false;
+  try {
+    const res  = await authFetch(`/api/user/favorites/check/${encodeURIComponent(animeId)}`);
+    const json = await res.json();
+    return json.isFavorite || false;
+  } catch {
+    return false;
+  }
+}
+
+/*  Watchlist Management (localStorage — belum ada tabel) */
+function addToWatchlist(anime, status = 'planning') {
+  const watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+  const existing  = watchlist.find(w => w.animeId === anime.animeId);
+  if (existing) {
+    existing.status    = status;
+    existing.updatedAt = new Date().toISOString();
+  } else {
+    watchlist.push({ ...anime, status, addedAt: new Date().toISOString() });
+  }
+  localStorage.setItem('watchlist', JSON.stringify(watchlist));
+}
+
+function removeFromWatchlist(animeId) {
+  const watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+  localStorage.setItem('watchlist', JSON.stringify(watchlist.filter(w => w.animeId !== animeId)));
+}
+
+function isInWatchlist(animeId) {
+  return JSON.parse(localStorage.getItem('watchlist') || '[]').find(w => w.animeId === animeId);
+}
+
+function updateWatchProgress(episodeId, progress, positionSec, serverId) {
+  if (Auth.isLoggedIn()) {
+    authFetch('/api/user/history', {
+      method: 'POST',
+      body: JSON.stringify({
+        video_slug:      episodeId,
+        video_title:     window._currentVideoTitle || undefined,
+        video_cover_url: window._currentVideoCover || undefined,
+        watch_progress:  Math.min(100, Math.max(0, progress)),
+        last_position:   Math.floor(positionSec || 0),
+        last_server_id:  serverId || window._currentServerId || undefined,
+      }),
+    }).catch(err => console.warn('updateWatchProgress failed:', err));
+  }
+}

@@ -70,14 +70,15 @@ exports.login = async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, username, email, password_hash, role')
+      .select('id, username, email, password_hash, role, is_active')
       .eq('email', email)
       .maybeSingle();
 
     if (error || !user)
       return res.status(401).json({ success: false, message: 'Email atau password salah' });
 
-    if (!user.is_active)
+    // Hanya blokir jika is_active secara eksplisit false (bukan null/undefined)
+    if (user.is_active === false)
       return res.status(403).json({ success: false, message: 'Akun tidak aktif' });
 
     const valid = await bcrypt.compare(password, user.password_hash);

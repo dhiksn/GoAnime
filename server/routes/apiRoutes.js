@@ -2,12 +2,28 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/apiController');
 const auth = require('../controllers/authController');
+const user = require('../controllers/userController');
+const requireAuth = require('../middleware/authMiddleware');
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 router.post('/auth/register', auth.register);
 router.post('/auth/login',    auth.login);
 router.post('/auth/logout',   auth.logout);
 router.get('/auth/me',        auth.me);
+
+// ─── User — Watch History (butuh login) ──────────────────────────────────────
+router.get   ('/user/history',         requireAuth, user.getHistory);
+router.get   ('/user/history/:slug',   requireAuth, user.getHistoryBySlug);
+router.post  ('/user/history',         requireAuth, user.upsertHistory);
+router.delete('/user/history',         requireAuth, user.clearHistory);
+router.delete('/user/history/:slug',   requireAuth, user.deleteHistory);
+
+// ─── User — Favorites (butuh login) ──────────────────────────────────────────
+router.get   ('/user/favorites',             requireAuth, user.getFavorites);
+router.post  ('/user/favorites',             requireAuth, user.addFavorite);
+router.delete('/user/favorites',             requireAuth, user.clearFavorites);
+router.delete('/user/favorites/:slug',       requireAuth, user.deleteFavorite);
+router.get   ('/user/favorites/check/:slug', requireAuth, user.checkFavorite);
 
 // ─── List & Browse ────────────────────────────────────────────────────────────
 

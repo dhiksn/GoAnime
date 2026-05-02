@@ -297,6 +297,7 @@
       <input type="text" id="navSearch" placeholder="Cari anime..." />
       <button onclick="doNavSearch()"><i data-lucide="search" style="width:16px;height:16px;"></i></button>
     </div>
+    <div id="navAuth"></div>
   </div>
 </nav>
 
@@ -347,8 +348,10 @@
 </footer>
 
 <script src="/js/helpers.js"></script>
+<script src="/js/auth.js"></script>
 <script>
   initNavSearch();
+  renderAuthNav();
   const params = new URLSearchParams(location.search);
   const slug   = params.get('slug') || '';
 
@@ -371,6 +374,20 @@
       const json = await res.json();
       const d    = json.data || {};
 
+      // Store episode data for history tracking
+      currentEpisodeData = {
+        episodeId: d.episodeId || slug,
+        animeId: d.animeId,
+        animeTitle: d.animeTitle || d.animeId,
+        title: d.title,
+        episode: d.episode || extractEpisodeNumber(d.title),
+        poster: d.poster || '/img/placeholder.svg'
+      };
+
+      // Set global untuk updateWatchProgress
+      window._currentVideoTitle = d.title || slug;
+      window._currentVideoCover = d.poster || null;
+
       document.title = `${d.title || 'Episode'}  MiruApp`;
       document.getElementById('epTitle').innerHTML = `<span>Episode</span> ${d.title || slug}`;
 
@@ -378,6 +395,20 @@
       const qualities = d.server?.qualities || [];
       const serverSec = document.getElementById('serverSection');
       const validQualities = qualities.filter(q => q.serverList?.length > 0);
+
+      // Ambil resume data dari DB jika sudah login
+      let resumePosition = 0;
+      let resumeServerId = null;
+      if (Auth.isLoggedIn()) {
+        try {
+          const hRes  = await authFetch(`/api/user/history/${encodeURIComponent(slug)}`);
+          const hJson = await hRes.json();
+          if (hJson.success && hJson.data) {
+            resumePosition = hJson.data.last_position || 0;
+            resumeServerId = hJson.data.last_server_id || null;
+          }
+        } catch(e) { /* abaikan */ }
+      }
 
       if (validQualities.length) {
         // Tabs kualitas + server list per kualitas
@@ -390,7 +421,7 @@
         const serversHTML = validQualities.map((q, i) => `
           <div class="quality-servers ${i === 0 ? 'active' : ''}" id="q${i}">
             ${q.serverList.map(s => `
-              <button class="server-btn" onclick="loadServerById('${s.serverId}', this)">
+              <button class="server-btn" data-server-id="${s.serverId}" onclick="loadServerById('${s.serverId}', this, 0)">
                 <i data-lucide="play" style="width:14px;height:14px;"></i>
                 ${s.title}
               </button>`).join('')}
@@ -403,11 +434,30 @@
             ${serversHTML}
           </div>`;
 
-        // Auto-load server pertama
-        const firstServer = validQualities[0]?.serverList?.[0];
-        if (firstServer) {
-          const firstBtn = serverSec.querySelector('.server-btn');
-          loadServerById(firstServer.serverId, firstBtn);
+        // Auto-load: pakai server terakhir jika ada, atau server pertama
+        const allServers = validQualities.flatMap(q => q.serverList || []);
+        const targetServer = resumeServerId
+          ? allServers.find(s => s.serverId === resumeServerId)
+          : null;
+
+        if (targetServer) {
+          // Highlight tombol server yang sesuai
+          const targetBtn = serverSec.querySelector(`[data-server-id="${targetServer.serverId}"]`);
+          loadServerById(targetServer.serverId, targetBtn, resumePosition);
+        } else {
+          // Fallback ke server pertama
+          const firstServer = validQualities[0]?.serverList?.[0];
+          if (firstServer) {
+            const firstBtn = serverSec.querySelector('.server-btn');
+            loadServerById(firstServer.serverId, firstBtn, 0);
+          }
+        }
+
+        // Tampilkan toast resume jika ada posisi tersimpan
+        if (resumePosition > 5) {
+          const mins = Math.floor(resumePosition / 60);
+          const secs = Math.floor(resumePosition % 60).toString().padStart(2, '0');
+          showResumeToast(`Melanjutkan dari ${mins}:${secs}`);
         }
       } else if (d.defaultStreamingUrl) {
          document.getElementById('playerWrap').innerHTML = `<iframe src="${d.defaultStreamingUrl}" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
@@ -487,13 +537,40 @@
   }
 
   let artInstance = null;
+  let currentEpisodeData = null;
+  let _saveProgressTimer = null; // throttle save setiap 5 detik
+
+  // Variabel global untuk diakses helpers.js saat update progress
+  window._currentVideoTitle = null;
+  window._currentVideoCover = null;
+  window._currentServerId   = null;
 
   // URL yang bisa langsung diplay di ArtPlayer
   function isDirectPlayable(url) {
     return url.match(/\.(mp4|webm|ogg|m3u8)(\?|$)/i) !== null;
   }
 
-  function playDirect(url, title) {
+  // Save watch history when episode is loaded
+  function saveCurrentEpisodeToHistory() {
+    if (!currentEpisodeData) return;
+    
+    saveWatchHistory({
+      episodeId: currentEpisodeData.episodeId || slug,
+      animeId: currentEpisodeData.animeId,
+      animeTitle: currentEpisodeData.animeTitle || currentEpisodeData.animeId,
+      episodeTitle: currentEpisodeData.title,
+      episode: currentEpisodeData.episode || extractEpisodeNumber(currentEpisodeData.title),
+      poster: currentEpisodeData.poster || '/img/placeholder.svg',
+      progress: 0
+    });
+  }
+
+  function extractEpisodeNumber(title) {
+    const match = title?.match(/episode\s*(\d+)/i);
+    return match ? match[1] : '?';
+  }
+
+  function playDirect(url, title, resumePosition = 0) {
     const wrap = document.getElementById('playerWrap');
     wrap.innerHTML = '<div id="artplayer-app"></div>';
 
@@ -528,6 +605,55 @@
         }
       } : {},
     });
+
+    // Resume ke posisi terakhir — hanya sekali
+    if (resumePosition > 5) {
+      let resumed = false;
+      artInstance.on('video:canplay', () => {
+        if (resumed) return;
+        resumed = true;
+        artInstance.seek = resumePosition;
+      });
+    }
+
+    // Fungsi save posisi saat ini
+    function saveCurrentPosition() {
+      if (!currentEpisodeData || !artInstance.duration) return;
+      const progress = Math.floor((artInstance.currentTime / artInstance.duration) * 100);
+      updateWatchProgress(
+        currentEpisodeData.episodeId || slug,
+        progress,
+        artInstance.currentTime,
+        window._currentServerId
+      );
+    }
+
+    // Throttle save setiap 5 detik saat video berjalan
+    artInstance.on('video:timeupdate', () => {
+      if (!currentEpisodeData || !artInstance.duration) return;
+      if (_saveProgressTimer) return;
+      _saveProgressTimer = setTimeout(() => {
+        _saveProgressTimer = null;
+        saveCurrentPosition();
+      }, 5000);
+    });
+
+    // Simpan LANGSUNG saat pause — posisi akurat
+    artInstance.on('video:pause', () => {
+      if (_saveProgressTimer) { clearTimeout(_saveProgressTimer); _saveProgressTimer = null; }
+      saveCurrentPosition();
+    });
+
+    // Simpan LANGSUNG saat video selesai
+    artInstance.on('video:ended', () => {
+      if (_saveProgressTimer) { clearTimeout(_saveProgressTimer); _saveProgressTimer = null; }
+      saveCurrentPosition();
+    });
+
+    // Save to history when video starts playing
+    artInstance.on('video:play', () => {
+      saveCurrentEpisodeToHistory();
+    });
   }
 
   function playIframe(url) {
@@ -535,10 +661,13 @@
     wrap.innerHTML = `<iframe src="${url}" allowfullscreen allow="autoplay; fullscreen" style="width:100%;height:100%;border:none;"></iframe>`;
   }
 
-  async function loadServerById(serverId, btn) {
+  async function loadServerById(serverId, btn, resumePosition = 0) {
     if (!serverId) return;
     document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
+
+    // Simpan server yang dipilih
+    window._currentServerId = serverId;
 
     const wrap = document.getElementById('playerWrap');
     wrap.innerHTML = '<div class="player-placeholder"><div class="spinner"></div><span>Mengambil link stream...</span></div>';
@@ -556,16 +685,66 @@
       const epTitle = document.getElementById('epTitle')?.textContent?.trim() || '';
 
       if (isDirectPlayable(url)) {
-        // MP4 / HLS  ArtPlayer custom
-        playDirect(url, epTitle);
+        playDirect(url, epTitle, resumePosition);
       } else {
-        // Mega, Filedon, Blogger, dll  iframe biasa
         playIframe(url);
       }
     } catch (err) {
       wrap.innerHTML = `<div class="player-placeholder"><span style="color:var(--accent)"> ${err.message}</span></div>`;
     }
   }
+
+  // Simpan posisi saat user leave page atau switch tab
+  function saveOnLeave() {
+    if (!artInstance || !currentEpisodeData || !artInstance.duration) return;
+    const progress = Math.floor((artInstance.currentTime / artInstance.duration) * 100);
+    // Gunakan sendBeacon agar request tidak dibatalkan saat navigasi
+    const token = Auth.getToken();
+    if (!token) return;
+    const payload = JSON.stringify({
+      video_slug:      currentEpisodeData.episodeId || slug,
+      video_title:     window._currentVideoTitle || undefined,
+      video_cover_url: window._currentVideoCover || undefined,
+      watch_progress:  progress,
+      last_position:   Math.floor(artInstance.currentTime),
+      last_server_id:  window._currentServerId || undefined,
+    });
+    // sendBeacon tidak support custom header, pakai fetch dengan keepalive
+    fetch('/api/user/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: payload,
+      keepalive: true, // request tetap jalan meski halaman ditutup
+    }).catch(() => {});
+  }
+
+  // Event: pindah halaman (klik link, back button, dll)
+  window.addEventListener('beforeunload', saveOnLeave);
+
+  // Event: switch tab / minimize — simpan saat tab tidak aktif
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) saveOnLeave();
+  });
+
+  function showResumeToast(message) {
+    const toast = document.createElement('div');
+    toast.innerHTML = `▶ ${message}`;
+    toast.style.cssText = `
+      position:fixed; bottom:2rem; left:50%; transform:translateX(-50%);
+      background:rgba(0,0,0,.85); backdrop-filter:blur(8px);
+      color:#fff; padding:.65rem 1.5rem; border-radius:30px;
+      font-size:.88rem; font-weight:600; z-index:9999;
+      border:1px solid rgba(255,255,255,.15);
+      animation:fadeInUp .3s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity .4s'; setTimeout(()=>toast.remove(),400); }, 3000);
+  }
+
+  // Tambahkan animasi
+  const _style = document.createElement('style');
+  _style.textContent = `@keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }`;
+  document.head.appendChild(_style);
 
   loadEpisode();
 </script>
