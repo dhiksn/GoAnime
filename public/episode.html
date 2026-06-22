@@ -771,50 +771,6 @@
       });
     }
 
-    let bufferingTimer = null;
-    let bufferingStartedAt = 0;
-    let autoSwitchCount = 0;
-
-    function clearBufferingTimer() {
-      if (!bufferingTimer) return;
-      clearTimeout(bufferingTimer);
-      bufferingTimer = null;
-      bufferingStartedAt = 0;
-    }
-
-    function tryAutoSwitch(reason) {
-      if (autoSwitchCount >= 2) return;
-      autoSwitchCount += 1;
-
-      const activeBtn = document.querySelector('.server-btn.active');
-      const activeContainer = activeBtn?.closest('.quality-servers') || document.querySelector('.quality-servers.active');
-      const candidates = Array.from(activeContainer?.querySelectorAll('.server-btn') || []).filter(b => b !== activeBtn);
-      const nextBtn = candidates[0];
-
-      if (!nextBtn) {
-        showResumeToast('Server lagi lambat/blocked. Coba ganti server atau turunin kualitas.');
-        return;
-      }
-
-      const currentTime = Math.max(0, Math.floor(artInstance?.currentTime || 0));
-      const nextServerId = nextBtn.getAttribute('data-server-id');
-      if (!nextServerId) return;
-
-      showResumeToast(`Buffering (${reason}). Pindah server otomatis...`);
-      loadServerById(nextServerId, nextBtn, currentTime);
-    }
-
-    function onBuffering(reason) {
-      if (bufferingTimer) return;
-      bufferingStartedAt = Date.now();
-      bufferingTimer = setTimeout(() => {
-        bufferingTimer = null;
-        const elapsed = Date.now() - bufferingStartedAt;
-        bufferingStartedAt = 0;
-        if (elapsed >= 8000) tryAutoSwitch(reason);
-      }, 8000);
-    }
-
     function saveCurrentPosition() {
       if (!currentEpisodeData || !artInstance.duration) return;
       const progress = Math.floor((artInstance.currentTime / artInstance.duration) * 100);
@@ -849,14 +805,7 @@
       saveCurrentEpisodeToHistory();
     });
 
-    artInstance.on('video:waiting', () => onBuffering('waiting'));
-    artInstance.on('video:stalled', () => onBuffering('stalled'));
-    artInstance.on('video:canplay', clearBufferingTimer);
-    artInstance.on('video:playing', clearBufferingTimer);
-    artInstance.on('video:error', () => {
-      clearBufferingTimer();
-      tryAutoSwitch('error');
-    });
+
   }
 
   function playIframe(url) {
