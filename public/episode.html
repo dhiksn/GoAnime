@@ -845,6 +845,96 @@
     plyrInstance.on('play', () => {
       saveCurrentEpisodeToHistory();
     });
+
+    // Keyboard listener — aktif hanya saat player ada di DOM
+    function onPlayerKey(e) {
+      // Abaikan saat user sedang ngetik di input/textarea
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+      const p = plyrInstance;
+      if (!p) return;
+
+      switch (e.key) {
+        case ' ':
+        case 'k':
+        case 'K':
+          e.preventDefault();
+          p.togglePlay();
+          showPlayerToast(p.playing ? '▶ Play' : '⏸ Pause');
+          break;
+
+        case 'ArrowRight':
+        case 'l':
+        case 'L':
+          e.preventDefault();
+          p.currentTime = Math.min(p.duration || 0, p.currentTime + (e.shiftKey ? 30 : 10));
+          showPlayerToast(`+${e.shiftKey ? 30 : 10}s`);
+          break;
+
+        case 'ArrowLeft':
+        case 'j':
+        case 'J':
+          e.preventDefault();
+          p.currentTime = Math.max(0, p.currentTime - (e.shiftKey ? 30 : 10));
+          showPlayerToast(`-${e.shiftKey ? 30 : 10}s`);
+          break;
+
+        case 'ArrowUp':
+          e.preventDefault();
+          p.volume = Math.min(1, +(p.volume + 0.1).toFixed(1));
+          showPlayerToast(`🔊 ${Math.round(p.volume * 100)}%`);
+          break;
+
+        case 'ArrowDown':
+          e.preventDefault();
+          p.volume = Math.max(0, +(p.volume - 0.1).toFixed(1));
+          showPlayerToast(`🔉 ${Math.round(p.volume * 100)}%`);
+          break;
+
+        case 'm':
+        case 'M':
+          e.preventDefault();
+          p.muted = !p.muted;
+          showPlayerToast(p.muted ? '🔇 Mute' : '🔊 Unmute');
+          break;
+
+        case 'f':
+        case 'F':
+          e.preventDefault();
+          p.fullscreen.toggle();
+          break;
+
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            p.currentTime = (p.duration || 0) * (parseInt(e.key) / 10);
+            showPlayerToast(`⏩ ${e.key}0%`);
+          }
+          break;
+
+        case '>':
+          e.preventDefault();
+          { const rates = [0.5, 0.75, 1, 1.25, 1.5, 2];
+            const idx = rates.indexOf(p.speed);
+            if (idx < rates.length - 1) { p.speed = rates[idx + 1]; showPlayerToast(`${p.speed}×`); } }
+          break;
+
+        case '<':
+          e.preventDefault();
+          { const rates = [0.5, 0.75, 1, 1.25, 1.5, 2];
+            const idx = rates.indexOf(p.speed);
+            if (idx > 0) { p.speed = rates[idx - 1]; showPlayerToast(`${p.speed}×`); } }
+          break;
+
+        default: break;
+      }
+    }
+
+    // Daftarkan listener; hapus dulu kalau sebelumnya sudah ada
+    document.removeEventListener('keydown', window._playerKeyHandler);
+    window._playerKeyHandler = onPlayerKey;
+    document.addEventListener('keydown', window._playerKeyHandler);
   }
 
   function playIframe(url) {
@@ -914,6 +1004,33 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) saveOnLeave();
   });
+
+  let _playerToastTimer = null;
+  function showPlayerToast(message) {
+    const wrap = document.getElementById('playerWrap');
+    if (!wrap) return;
+
+    let toast = wrap.querySelector('.plyr-key-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'plyr-key-toast';
+      toast.style.cssText = `
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        background:rgba(0,0,0,.75); color:var(--color-primary);
+        padding:var(--space-3) var(--space-6);
+        font-family:var(--font-mono); font-size:var(--text-base); font-weight:700;
+        border:2px solid var(--color-primary); letter-spacing:.06em;
+        pointer-events:none; z-index:100;
+        transition:opacity .2s;
+      `;
+      wrap.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    if (_playerToastTimer) clearTimeout(_playerToastTimer);
+    _playerToastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 800);
+  }
 
   function showResumeToast(message) {
     const toast = document.createElement('div');
