@@ -10,10 +10,11 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png" />
   <link rel="apple-touch-icon" href="/icon/apple-touch-icon.png" />
   <link rel="manifest" href="/icon/site.webmanifest" />
-  <!-- ArtPlayer -->
-  <script src="https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js"></script>
+  <!-- Plyr -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3/dist/plyr.css" />
+  <script src="https://cdn.jsdelivr.net/npm/plyr@3/dist/plyr.polyfilled.js"></script>
   <!-- HLS.js for m3u8 -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
   <style>
     .watch-layout {
       display: grid;
@@ -29,10 +30,7 @@
       position: relative;
       background: var(--color-black);
     }
-    #artplayer-app {
-      width: 100%;
-      height: 100%;
-    }
+
     .player-placeholder {
       width: 100%; height: 100%;
       display: flex; flex-direction: column;
@@ -344,6 +342,51 @@
     @media (max-width: 600px) {
       .ep-title { font-size: var(--text-xl); flex-direction: column; gap: var(--space-2); }
       .nav-btn span { display: none; }
+    }
+
+    /* ── Plyr overrides ──────────────────────────────────── */
+    #plyr-wrap {
+      width: 100%;
+      height: 100%;
+    }
+    #plyr-wrap video {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .plyr {
+      width: 100% !important;
+      height: 100% !important;
+      font-family: var(--font-mono) !important;
+    }
+    .plyr--video {
+      background: var(--color-black);
+    }
+    .plyr__control--overlaid {
+      background: var(--color-primary) !important;
+      color: var(--color-black) !important;
+      border: 3px solid var(--color-border) !important;
+      box-shadow: 4px 4px 0 var(--color-border) !important;
+    }
+    .plyr__control--overlaid:hover {
+      background: #ffe500cc !important;
+    }
+    .plyr--full-ui input[type=range] {
+      color: var(--color-primary) !important;
+    }
+    .plyr__progress__buffer {
+      color: rgba(255,229,0,.25) !important;
+    }
+    .plyr__control.plyr__tab-focus,
+    .plyr__control:hover,
+    .plyr__control[aria-expanded=true] {
+      background: var(--color-primary) !important;
+      color: var(--color-black) !important;
+    }
+    .plyr__menu__container {
+      font-family: var(--font-mono) !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
     }
   </style>
 </head>
@@ -666,7 +709,8 @@
     }
   }
 
-  let artInstance = null;
+  let plyrInstance = null;
+  let hlsInstance  = null;
   let currentEpisodeData = null;
   let _saveProgressTimer = null;
 
@@ -728,62 +772,59 @@
 
   function playDirect(url, title, resumePosition = 0) {
     const wrap = document.getElementById('playerWrap');
-    wrap.innerHTML = '<div id="artplayer-app"></div>';
+    wrap.innerHTML = '<div id="plyr-wrap"><video id="plyr-video" playsinline controls></video></div>';
 
     const isHLS = url.includes('.m3u8');
 
-    if (artInstance) { try { artInstance.destroy(); } catch(e) {} }
+    // Destroy previous instances
+    if (plyrInstance) { try { plyrInstance.destroy(); } catch(e) {} plyrInstance = null; }
+    if (hlsInstance)  { try { hlsInstance.destroy();  } catch(e) {} hlsInstance  = null; }
 
-    artInstance = new Artplayer({
-      container: '#artplayer-app',
-      url,
+    const videoEl = document.getElementById('plyr-video');
+
+    if (isHLS && Hls.isSupported()) {
+      hlsInstance = new Hls();
+      hlsInstance.loadSource(url);
+      hlsInstance.attachMedia(videoEl);
+    } else if (isHLS && videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+      videoEl.src = url;
+    } else {
+      videoEl.src = url;
+    }
+
+    plyrInstance = new Plyr(videoEl, {
       title: title || '',
-      volume: 0.8,
       autoplay: true,
-      pip: true,
-      screenshot: true,
-      setting: true,
-      playbackRate: true,
-      aspectRatio: true,
-      fullscreen: true,
-      fullscreenWeb: true,
-      miniProgressBar: true,
-      theme: '#FFE500',
-      customType: isHLS ? {
-        m3u8: function(video, url) {
-          if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(url);
-            hls.attachMedia(video);
-          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
-          }
-        }
-      } : {},
+      volume: 0.8,
+      speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+      keyboard: { focused: true, global: false },
+      tooltips: { controls: true, seek: true },
+      captions: { active: false },
+      fullscreen: { enabled: true, fallback: true, iosNative: false },
     });
 
     if (resumePosition > 5) {
       let resumed = false;
-      artInstance.on('video:canplay', () => {
+      plyrInstance.on('canplay', () => {
         if (resumed) return;
         resumed = true;
-        artInstance.seek = resumePosition;
+        plyrInstance.currentTime = resumePosition;
       });
     }
 
     function saveCurrentPosition() {
-      if (!currentEpisodeData || !artInstance.duration) return;
-      const progress = Math.floor((artInstance.currentTime / artInstance.duration) * 100);
+      if (!currentEpisodeData || !plyrInstance.duration) return;
+      const progress = Math.floor((plyrInstance.currentTime / plyrInstance.duration) * 100);
       updateWatchProgress(
         currentEpisodeData.episodeId || slug,
         progress,
-        artInstance.currentTime,
+        plyrInstance.currentTime,
         window._currentServerId
       );
     }
 
-    artInstance.on('video:timeupdate', () => {
-      if (!currentEpisodeData || !artInstance.duration) return;
+    plyrInstance.on('timeupdate', () => {
+      if (!currentEpisodeData || !plyrInstance.duration) return;
       if (_saveProgressTimer) return;
       _saveProgressTimer = setTimeout(() => {
         _saveProgressTimer = null;
@@ -791,21 +832,19 @@
       }, 5000);
     });
 
-    artInstance.on('video:pause', () => {
+    plyrInstance.on('pause', () => {
       if (_saveProgressTimer) { clearTimeout(_saveProgressTimer); _saveProgressTimer = null; }
       saveCurrentPosition();
     });
 
-    artInstance.on('video:ended', () => {
+    plyrInstance.on('ended', () => {
       if (_saveProgressTimer) { clearTimeout(_saveProgressTimer); _saveProgressTimer = null; }
       saveCurrentPosition();
     });
 
-    artInstance.on('video:play', () => {
+    plyrInstance.on('play', () => {
       saveCurrentEpisodeToHistory();
     });
-
-
   }
 
   function playIframe(url) {
@@ -850,8 +889,8 @@
   }
 
   function saveOnLeave() {
-    if (!artInstance || !currentEpisodeData || !artInstance.duration) return;
-    const progress = Math.floor((artInstance.currentTime / artInstance.duration) * 100);
+    if (!plyrInstance || !currentEpisodeData || !plyrInstance.duration) return;
+    const progress = Math.floor((plyrInstance.currentTime / plyrInstance.duration) * 100);
     const token = Auth.getToken();
     if (!token) return;
     const payload = JSON.stringify({
@@ -859,7 +898,7 @@
       video_title:     window._currentVideoTitle || undefined,
       video_cover_url: window._currentVideoCover || undefined,
       watch_progress:  progress,
-      last_position:   Math.floor(artInstance.currentTime),
+      last_position:   Math.floor(plyrInstance.currentTime),
       last_server_id:  window._currentServerId || undefined,
     });
     fetch('/api/user/history', {
