@@ -867,16 +867,16 @@
         case 'l':
         case 'L':
           e.preventDefault();
-          p.currentTime = Math.min(p.duration || 0, p.currentTime + (e.shiftKey ? 30 : 10));
-          showPlayerToast(`+${e.shiftKey ? 30 : 10}s`);
+          p.currentTime = Math.min(p.duration || 0, p.currentTime + (e.shiftKey ? 30 : 5));
+          showPlayerToast(`+${e.shiftKey ? 30 : 5}s`);
           break;
 
         case 'ArrowLeft':
         case 'j':
         case 'J':
           e.preventDefault();
-          p.currentTime = Math.max(0, p.currentTime - (e.shiftKey ? 30 : 10));
-          showPlayerToast(`-${e.shiftKey ? 30 : 10}s`);
+          p.currentTime = Math.max(0, p.currentTime - (e.shiftKey ? 30 : 5));
+          showPlayerToast(`-${e.shiftKey ? 30 : 5}s`);
           break;
 
         case 'ArrowUp':
@@ -1007,23 +1007,33 @@
 
   let _playerToastTimer = null;
   function showPlayerToast(message) {
-    const wrap = document.getElementById('playerWrap');
-    if (!wrap) return;
+    // Saat fullscreen, Plyr menjadikan elemen .plyr sebagai fullscreen root,
+    // jadi toast harus di-append ke sana agar tetap tampil di atas video.
+    const plyrEl = document.querySelector('.plyr');
+    const wrap   = document.getElementById('playerWrap');
+    const root   = plyrEl || wrap;
+    if (!root) return;
 
-    let toast = wrap.querySelector('.plyr-key-toast');
+    // Pastikan root punya position agar absolute child bekerja
+    if (plyrEl) {
+      const pos = getComputedStyle(plyrEl).position;
+      if (pos === 'static') plyrEl.style.position = 'relative';
+    }
+
+    let toast = root.querySelector('.plyr-key-toast');
     if (!toast) {
       toast = document.createElement('div');
       toast.className = 'plyr-key-toast';
       toast.style.cssText = `
         position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-        background:rgba(0,0,0,.75); color:var(--color-primary);
-        padding:var(--space-3) var(--space-6);
-        font-family:var(--font-mono); font-size:var(--text-base); font-weight:700;
-        border:2px solid var(--color-primary); letter-spacing:.06em;
-        pointer-events:none; z-index:100;
+        background:rgba(0,0,0,.75); color:#FFE500;
+        padding:.5rem 1.25rem;
+        font-family:'Space Mono',monospace; font-size:1rem; font-weight:700;
+        border:2px solid #FFE500; letter-spacing:.06em;
+        pointer-events:none; z-index:2147483647;
         transition:opacity .2s;
       `;
-      wrap.appendChild(toast);
+      root.appendChild(toast);
     }
 
     toast.textContent = message;
