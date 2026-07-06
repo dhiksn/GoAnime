@@ -860,7 +860,7 @@
         case 'K':
           e.preventDefault();
           p.togglePlay();
-          showPlayerToast(p.playing ? '▶ Play' : '⏸ Pause');
+          showPlayerToast(p.playing ? '▶ Play' : '⏸ Pause', 'center');
           break;
 
         case 'ArrowRight':
@@ -868,7 +868,7 @@
         case 'L':
           e.preventDefault();
           p.currentTime = Math.min(p.duration || 0, p.currentTime + (e.shiftKey ? 30 : 5));
-          showPlayerToast(`+${e.shiftKey ? 30 : 5}s`);
+          showPlayerToast(`+${e.shiftKey ? 30 : 5}s`, 'right');
           break;
 
         case 'ArrowLeft':
@@ -876,26 +876,26 @@
         case 'J':
           e.preventDefault();
           p.currentTime = Math.max(0, p.currentTime - (e.shiftKey ? 30 : 5));
-          showPlayerToast(`-${e.shiftKey ? 30 : 5}s`);
+          showPlayerToast(`-${e.shiftKey ? 30 : 5}s`, 'left');
           break;
 
         case 'ArrowUp':
           e.preventDefault();
           p.volume = Math.min(1, +(p.volume + 0.1).toFixed(1));
-          showPlayerToast(`🔊 ${Math.round(p.volume * 100)}%`);
+          showPlayerToast(`🔊 ${Math.round(p.volume * 100)}%`, 'center');
           break;
 
         case 'ArrowDown':
           e.preventDefault();
           p.volume = Math.max(0, +(p.volume - 0.1).toFixed(1));
-          showPlayerToast(`🔉 ${Math.round(p.volume * 100)}%`);
+          showPlayerToast(`🔉 ${Math.round(p.volume * 100)}%`, 'center');
           break;
 
         case 'm':
         case 'M':
           e.preventDefault();
           p.muted = !p.muted;
-          showPlayerToast(p.muted ? '🔇 Mute' : '🔊 Unmute');
+          showPlayerToast(p.muted ? '🔇 Mute' : '🔊 Unmute', 'center');
           break;
 
         case 'f':
@@ -909,7 +909,7 @@
           if (!e.ctrlKey && !e.metaKey) {
             e.preventDefault();
             p.currentTime = (p.duration || 0) * (parseInt(e.key) / 10);
-            showPlayerToast(`⏩ ${e.key}0%`);
+            showPlayerToast(`⏩ ${e.key}0%`, 'center');
           }
           break;
 
@@ -917,14 +917,14 @@
           e.preventDefault();
           { const rates = [0.5, 0.75, 1, 1.25, 1.5, 2];
             const idx = rates.indexOf(p.speed);
-            if (idx < rates.length - 1) { p.speed = rates[idx + 1]; showPlayerToast(`${p.speed}×`); } }
+            if (idx < rates.length - 1) { p.speed = rates[idx + 1]; showPlayerToast(`${p.speed}×`, 'center'); } }
           break;
 
         case '<':
           e.preventDefault();
           { const rates = [0.5, 0.75, 1, 1.25, 1.5, 2];
             const idx = rates.indexOf(p.speed);
-            if (idx > 0) { p.speed = rates[idx - 1]; showPlayerToast(`${p.speed}×`); } }
+            if (idx > 0) { p.speed = rates[idx - 1]; showPlayerToast(`${p.speed}×`, 'center'); } }
           break;
 
         default: break;
@@ -1005,27 +1005,27 @@
     if (document.hidden) saveOnLeave();
   });
 
-  let _playerToastTimer = null;
-  function showPlayerToast(message) {
-    // Saat fullscreen, Plyr menjadikan elemen .plyr sebagai fullscreen root,
-    // jadi toast harus di-append ke sana agar tetap tampil di atas video.
+  let _playerToastTimers = {};
+  // side: 'left' | 'right' | 'center' (default center)
+  function showPlayerToast(message, side = 'center') {
     const plyrEl = document.querySelector('.plyr');
     const wrap   = document.getElementById('playerWrap');
     const root   = plyrEl || wrap;
     if (!root) return;
 
-    // Pastikan root punya position agar absolute child bekerja
     if (plyrEl) {
       const pos = getComputedStyle(plyrEl).position;
       if (pos === 'static') plyrEl.style.position = 'relative';
     }
 
-    let toast = root.querySelector('.plyr-key-toast');
+    const cls = `plyr-key-toast-${side}`;
+    let toast = root.querySelector(`.${cls}`);
     if (!toast) {
       toast = document.createElement('div');
-      toast.className = 'plyr-key-toast';
-      toast.style.cssText = `
-        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      toast.className = cls;
+
+      const baseStyle = `
+        position:absolute; top:50%; transform:translateY(-50%);
         background:rgba(0,0,0,.75); color:#FFE500;
         padding:.5rem 1.25rem;
         font-family:'Space Mono',monospace; font-size:1rem; font-weight:700;
@@ -1033,13 +1033,18 @@
         pointer-events:none; z-index:2147483647;
         transition:opacity .2s;
       `;
+
+      if (side === 'left')        toast.style.cssText = baseStyle + 'left:8%;';
+      else if (side === 'right')  toast.style.cssText = baseStyle + 'right:8%;';
+      else                        toast.style.cssText = baseStyle + 'left:50%; transform:translate(-50%,-50%);';
+
       root.appendChild(toast);
     }
 
     toast.textContent = message;
     toast.style.opacity = '1';
-    if (_playerToastTimer) clearTimeout(_playerToastTimer);
-    _playerToastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 800);
+    if (_playerToastTimers[side]) clearTimeout(_playerToastTimers[side]);
+    _playerToastTimers[side] = setTimeout(() => { toast.style.opacity = '0'; }, 800);
   }
 
   function showResumeToast(message) {
