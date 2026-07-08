@@ -17,12 +17,13 @@ const httpClient = axios.create({
 });
 
 /**
- * Generic fetch wrapper with error handling
+ * Generic fetch wrapper with error handling and 1x retry on 5xx
  * @param {string} path - API path
  * @param {object} params - Query parameters
+ * @param {number} attempt - Current attempt number (internal)
  * @returns {Promise<object>}
  */
-const fetchData = async (path, params = {}) => {
+const fetchData = async (path, params = {}, attempt = 1) => {
   try {
     logger.info(`Fetching: ${BASE_URL}${path} | params: ${JSON.stringify(params)}`);
 
@@ -48,10 +49,19 @@ const fetchData = async (path, params = {}) => {
     }
 
     if (error.response) {
-      logger.error(`Upstream error [${error.response.status}]: ${path}`);
+      const upstreamStatus = error.response.status;
+      logger.error(`Upstream error [${upstreamStatus}]: ${path}`);
+
+      // Retry once on 5xx errors
+      if (upstreamStatus >= 500 && attempt < 2) {
+        logger.info(`Retrying (attempt 2): ${path}`);
+        await new Promise(r => setTimeout(r, 1500));
+        return fetchData(path, params, 2);
+      }
+
       throw {
-        status: error.response.status,
-        message: `Upstream API returned status ${error.response.status}`,
+        status: upstreamStatus,
+        message: `Upstream API returned status ${upstreamStatus}`,
         data: error.response.data || null,
       };
     }

@@ -265,7 +265,43 @@
       const res  = await fetch(`${API}/api/batch/${slug}`);
       const json = await res.json();
 
-      if (!json.status || !json.data || !json.data.title) {
+      if (!json.status || !json.data) {
+        const statusCode = res.status;
+        // Upstream server error — tampilkan pesan, jangan redirect buta
+        if (statusCode >= 500) {
+          document.getElementById('batchHero').innerHTML = `
+            <div class="container">
+              <div style="padding: var(--space-12) 0; text-align: center;">
+                <div style="font-family: var(--font-display); font-size: var(--text-3xl); font-weight: 900; text-transform: uppercase; margin-bottom: var(--space-4);">
+                  Server Sedang Gangguan
+                </div>
+                <div style="font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-secondary); margin-bottom: var(--space-8); max-width: 480px; margin-left: auto; margin-right: auto;">
+                  Data batch untuk <strong>${slug}</strong> tidak bisa dimuat saat ini. Upstream API mengembalikan error ${statusCode}. Coba lagi beberapa saat.
+                </div>
+                <div style="display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap;">
+                  <button onclick="location.reload()"
+                    style="padding: var(--space-3) var(--space-6); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 700; background: var(--color-primary); border: var(--border-thick) solid var(--color-border); box-shadow: var(--shadow-sm); cursor: pointer; text-transform: uppercase;">
+                    ↻ Coba Lagi
+                  </button>
+                  <a href="/anime/${slug}"
+                    style="padding: var(--space-3) var(--space-6); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 700; background: var(--color-white); border: var(--border-thick) solid var(--color-border); box-shadow: var(--shadow-sm); text-decoration: none; color: var(--color-black); text-transform: uppercase;">
+                    Lihat Halaman Anime
+                  </a>
+                  <a href="/batch"
+                    style="padding: var(--space-3) var(--space-6); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 700; background: var(--color-white); border: var(--border-thick) solid var(--color-border); box-shadow: var(--shadow-sm); text-decoration: none; color: var(--color-black); text-transform: uppercase;">
+                    ← Kembali ke Batch
+                  </a>
+                </div>
+              </div>
+            </div>`;
+          return;
+        }
+        // Data tidak ada / slug salah → coba redirect ke halaman anime
+        window.location.href = `/anime/${slug}`;
+        return;
+      }
+
+      if (!json.data.title) {
         window.location.href = `/anime/${slug}`;
         return;
       }
