@@ -80,8 +80,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ status: false, message: 'Internal server error', error: err.message });
 });
 
-// Lokal saja
-if (process.env.NETLIFY !== 'true') {
+// Lokal saja (tidak jalan saat di Vercel atau Netlify)
+if (!process.env.VERCEL && process.env.NETLIFY !== 'true') {
   app.listen(PORT, () => logger.info(`Server running on http://localhost:${PORT}`));
 }
 
