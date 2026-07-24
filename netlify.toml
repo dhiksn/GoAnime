@@ -3,59 +3,9 @@
   functions = "netlify/functions"
 
 [functions]
-  included_files = ["server/**", "app.js"]
-
-# API routes — diteruskan ke Netlify Function
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/server/api/:splat"
-  status = 200
-
-# Static assets di-serve langsung oleh Netlify CDN (tidak lewat function)
-# File .html, .css, .js, gambar, dll otomatis di-serve dari folder publish="public"
-
-# SPA fallback: clean URL page routes (misalnya /anime/slug) → HTML yang sesuai
-[[redirects]]
-  from = "/anime/*"
-  to = "/anime.html"
-  status = 200
+  included_files = ["public/**"]
 
 [[redirects]]
-  from = "/episode/*"
-  to = "/episode.html"
-  status = 200
-
-[[redirects]]
-  from = "/batch/*"
-  to = "/batch-detail.html"
-  status = 200
-
-[[redirects]]
-  from = "/genres/*"
-  to = "/genre.html"
-  status = 200
-
-[[redirects]]
-  from = "/profile/history"
-  to = "/profile/history.html"
-  status = 200
-
-[[redirects]]
-  from = "/profile/favorites"
-  to = "/profile/favorites.html"
-  status = 200
-
-[[redirects]]
-  from = "/profile/settings"
-  to = "/profile/settings.html"
-  status = 200
-
-[[redirects]]
-  from = "/profile/change-password"
-  to = "/profile/change-password.html"
-  status = 200
-
-[[redirects]]
-  from = "/profile"
-  to = "/profile.html"
+  from = "/*"
+  to = "/.netlify/functions/server"
   status = 200

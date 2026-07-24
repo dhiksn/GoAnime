@@ -7,12 +7,26 @@ const logger    = require('./server/utils/logger');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+// Determine the correct public directory path for both local and Netlify Functions
+console.log('Current __dirname:', __dirname);
+console.log('Current process.cwd():', process.cwd());
+console.log('NETLIFY env var:', process.env.NETLIFY);
+console.log('LAMBDA_TASK_ROOT env var:', process.env.LAMBDA_TASK_ROOT);
 
-const IS_NETLIFY = process.env.NETLIFY === 'true';
+const fs = require('fs');
+const PUB = path.join(process.cwd(), 'public');
+
+console.log('PUB:', PUB);
+console.log('anime exists:', fs.existsSync(path.join(PUB, 'anime.html')));
+
+const send = (file) => (req, res) => res.sendFile(path.join(PUB, file));
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Static files
+app.use(express.static(PUB));
 
 // Logging
 app.use((req, res, next) => {
@@ -20,60 +34,44 @@ app.use((req, res, next) => {
   next();
 });
 
-// API routes — selalu aktif di local maupun Netlify
+// API routes
 app.use('/api', apiRoutes);
 
-// ── Page routes & static — hanya dipakai saat local ─────────
-if (!IS_NETLIFY) {
-  const fs  = require('fs');
-  const PUB = path.join(process.cwd(), 'public');
+// ── Page routes (clean URL) ──────────────────────────────────
+app.get('/',             send('index.html'));
+app.get('/recent',       send('recent.html'));
+app.get('/search',       send('search.html'));
+app.get('/ongoing',      send('ongoing.html'));
+app.get('/completed',    send('completed.html'));
+app.get('/popular',      send('popular.html'));
+app.get('/movies',       send('movies.html'));
+app.get('/schedule',     send('schedule.html'));
+app.get('/genres',       send('genres.html'));
+app.get('/genres/:slug', send('genre.html'));
+app.get('/genre',        send('genre.html'));
+app.get('/batch',        send('batch.html'));
+app.get('/batch/:slug', send('batch-detail.html'));
+app.get('/anime',        send('anime.html'));
+app.get('/anime/:slug',  send('anime.html'));
+app.get('/episode',      send('episode.html'));
+app.get('/episode/:slug', send('episode.html'));
+app.get('/daftar-anime', send('list.html'));
+app.get('/list',         send('list.html'));
 
-  app.use(express.static(PUB));
+app.get('/login',    send('login.html'));
+app.get('/register', send('register.html'));
+app.get('/profile',  send('profile.html'));
+app.get('/profile/history',   send('profile/history.html'));
+app.get('/profile/favorites', send('profile/favorites.html'));
+app.get('/profile/settings',  send('profile/settings.html'));
+app.get('/profile/change-password', send('profile/change-password.html'));
 
-  const send = (file) => (req, res) => res.sendFile(path.join(PUB, file));
-
-  app.get('/',             send('index.html'));
-  app.get('/recent',       send('recent.html'));
-  app.get('/search',       send('search.html'));
-  app.get('/ongoing',      send('ongoing.html'));
-  app.get('/completed',    send('completed.html'));
-  app.get('/popular',      send('popular.html'));
-  app.get('/movies',       send('movies.html'));
-  app.get('/schedule',     send('schedule.html'));
-  app.get('/genres',       send('genres.html'));
-  app.get('/genres/:slug', send('genre.html'));
-  app.get('/genre',        send('genre.html'));
-  app.get('/batch',        send('batch.html'));
-  app.get('/batch/:slug',  send('batch-detail.html'));
-  app.get('/anime',        send('anime.html'));
-  app.get('/anime/:slug',  send('anime.html'));
-  app.get('/episode',      send('episode.html'));
-  app.get('/episode/:slug', send('episode.html'));
-  app.get('/daftar-anime', send('list.html'));
-  app.get('/list',         send('list.html'));
-
-  app.get('/login',    send('login.html'));
-  app.get('/register', send('register.html'));
-  app.get('/profile',  send('profile.html'));
-  app.get('/profile/history',             send('profile/history.html'));
-  app.get('/profile/favorites',           send('profile/favorites.html'));
-  app.get('/profile/settings',            send('profile/settings.html'));
-  app.get('/profile/change-password',     send('profile/change-password.html'));
-
-  app.use((req, res) => {
-    if (req.path.startsWith('/api')) {
-      return res.status(404).json({ status: false, message: `Endpoint '${req.originalUrl}' not found` });
-    }
-    res.status(404).sendFile(path.join(PUB, '404.html'));
-  });
-}
-
-// ── 404 untuk API (berlaku di semua env) ─────────────────────
-app.use((req, res, next) => {
+// ── 404 ─────────────────────────────────────────────────────
+app.use((req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ status: false, message: `Endpoint '${req.originalUrl}' not found` });
   }
-  next();
+  res.status(404).sendFile(path.join(PUB, '404.html'));
 });
 
 // ── Error handler ────────────────────────────────────────────
@@ -83,7 +81,7 @@ app.use((err, req, res, next) => {
 });
 
 // Lokal saja
-if (!IS_NETLIFY) {
+if (process.env.NETLIFY !== 'true') {
   app.listen(PORT, () => logger.info(`Server running on http://localhost:${PORT}`));
 }
 
