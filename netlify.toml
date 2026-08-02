@@ -4,6 +4,10 @@
 
 [functions]
   included_files = ["public/**"]
+  node_bundler = "nft"
+
+[build.environment]
+  NODE_VERSION = "18"
 
 [[redirects]]
   from = "/*"
