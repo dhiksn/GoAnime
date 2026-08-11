@@ -297,7 +297,7 @@
       if (batches.length) {
         document.getElementById('batchSection').style.display = '';
         document.getElementById('batchList').innerHTML = batches.map(b => `
-          <div class="sidebar-anime-item" onclick="window.location.href='/batch/${b.animeId || slug}'">
+          <div class="sidebar-anime-item" onclick="window.location.href='/batch/${b.batchId || b.animeId || slug}'">
             <div class="sidebar-anime-thumb">${BATCH_BOX_ICON}</div>
             <div class="sidebar-anime-info">
               <div class="sidebar-anime-title">${b.title || 'Batch Download'}</div>
